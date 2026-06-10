@@ -58,6 +58,14 @@
   .derived{background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12.5px; color:var(--muted); line-height:1.7; margin-bottom:20px;}
   .derived b{color:var(--text);}
 
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+  .tiles + .tiles{margin-top:10px;}
+  .tile{background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:14px;}
+  .tile .k{font-size:11.5px; color:var(--muted); margin-bottom:4px;}
+  .tile .v{font-size:20px; font-weight:800; letter-spacing:-0.02em; font-variant-numeric:tabular-nums;}
+  .tile .s{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .tile.green{border-color:rgba(34,197,94,.4);} .tile.green .v{color:var(--client);}
+  .tile.amber{border-color:rgba(245,158,11,.4);} .tile.amber .v{color:var(--agency);}
   .results-top{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:18px;}
   .metric{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:18px;}
   .metric .k{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;}
@@ -227,13 +235,18 @@
     <div>
       <div class="card" style="margin-bottom:18px">
         <h2>Hoy</h2>
-        <table>
-          <tr><td class="row-label"><span class="dot d-blue"></span>Facturación</td><td id="hRev"></td></tr>
-          <tr><td class="row-label"><span class="dot d-ads"></span>Gasto en ads <small id="hAdsPct" style="color:var(--muted)"></small></td><td id="hAds" class="neg"></td></tr>
-          <tr><td class="row-label"><span class="dot d-purple"></span>ROAS · Pedidos · Ticket</td><td id="hMix"></td></tr>
-          <tr><td class="row-label"><span class="dot d-agency"></span>Nos pagas hoy <small id="hFeeOrder" style="color:var(--muted)"></small></td><td id="hFee"></td></tr>
-          <tr><td class="row-label"><span class="dot d-client"></span><span id="hNetLbl">Tu utilidad hoy</span> <small id="hMargin" style="color:var(--muted)"></small></td><td id="hNet"></td></tr>
-        </table>
+        <div class="tiles">
+          <div class="tile"><div class="k" id="hNetLbl2">Margen real hoy</div><div class="v" id="hMargin"></div></div>
+          <div class="tile"><div class="k">ROAS</div><div class="v" id="hRoas"></div></div>
+          <div class="tile"><div class="k">% gasto en ads</div><div class="v" id="hAdsPct"></div><div class="s" id="hAdsMonto"></div></div>
+          <div class="tile"><div class="k">Pedidos / mes</div><div class="v" id="hOrders"></div><div class="s" id="hTicket"></div></div>
+          <div class="tile green"><div class="k" id="hNetLbl">Tu utilidad hoy</div><div class="v" id="hNet"></div><div class="s" id="hRevS"></div></div>
+        </div>
+        <div class="tiles">
+          <div class="tile amber"><div class="k">Nos pagas hoy (fee)</div><div class="v" id="hFee"></div></div>
+          <div class="tile"><div class="k">Cobro actual por pedido</div><div class="v" id="hFeeOrder"></div></div>
+          <div class="tile"><div class="k">% del ticket promedio</div><div class="v" id="hFeePct"></div></div>
+        </div>
       </div>
 
       <div class="card">
@@ -487,15 +500,19 @@ function calc(){
   const netToday=(incl? gp : gp-fee)-(overNet?fixed:0);
   const preAdsMargin=rev? (varProfit+ads)/rev : 0;
 
-  $('hRev').textContent=fmt(rev);
-  $('hAds').textContent='– '+fmt(ads);
-  $('hAdsPct').textContent='('+(adsPctBase*100).toFixed(1)+'% de la venta)';
-  $('hMix').textContent=(ads?(rev/ads).toFixed(2):'–')+' · '+Math.round(orders).toLocaleString('en-US')+' · '+fmt(aov);
-  $('hFee').textContent=fmt(fee);
-  $('hFeeOrder').textContent=orders?'('+fmt(fee/orders)+' por pedido · '+(aov?(((fee/orders)/aov)*100).toFixed(1):0)+'% del ticket)':'';
+  $('hMargin').textContent=(rev?((netToday/rev)*100).toFixed(1):0)+'%';
+  $('hNetLbl2').textContent=overNet?'Margen neto hoy':'Margen real hoy';
+  $('hRoas').textContent=ads?(rev/ads).toFixed(2):'–';
+  $('hAdsPct').textContent=(adsPctBase*100).toFixed(1)+'%';
+  $('hAdsMonto').textContent=fmt(ads)+' al mes';
+  $('hOrders').textContent=Math.round(orders).toLocaleString('en-US');
+  $('hTicket').textContent='ticket '+fmt(aov);
   $('hNetLbl').textContent=overNet?'Tu utilidad neta hoy':'Tu utilidad hoy';
   $('hNet').textContent=fmtS(netToday);
-  $('hMargin').textContent='(margen '+(rev?((netToday/rev)*100).toFixed(1):0)+'%'+(overNet?' · después de gastos fijos':'')+')';
+  $('hRevS').textContent='vendiendo '+fmt(rev);
+  $('hFee').textContent=fmt(fee);
+  $('hFeeOrder').textContent=orders?fmt(fee/orders):'–';
+  $('hFeePct').textContent=(orders&&aov)?(((fee/orders)/aov)*100).toFixed(1)+'%':'–';
 
   function scen(r){
     const c=r*pct+newFee;
