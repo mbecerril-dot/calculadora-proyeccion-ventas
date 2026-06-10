@@ -279,12 +279,12 @@
           </div>
         </div>
 
-        <table>
-          <tr><td class="row-label"><span class="dot d-blue"></span>Venta proyectada</td><td id="wRev"></td></tr>
-          <tr><td class="row-label"><span class="dot d-ads"></span>Inversión en ads <small id="wAdsPctL" style="color:var(--muted)"></small></td><td id="wAds" class="neg"></td></tr>
-          <tr><td class="row-label"><span class="dot d-purple"></span>Pedidos al mes <small id="wOrdersD" style="color:var(--muted)"></small></td><td id="wOrders"></td></tr>
-          <tr><td class="row-label"><span class="dot d-client"></span>Ganarías extra vs hoy</td><td id="wDelta" style="color:var(--client)"></td></tr>
-        </table>
+        <div class="tiles">
+          <div class="tile"><div class="k">Venta proyectada</div><div class="v" id="wRev"></div></div>
+          <div class="tile"><div class="k">Inversión en ads</div><div class="v" id="wAds"></div><div class="s" id="wAdsPctL"></div></div>
+          <div class="tile"><div class="k">Pedidos al mes</div><div class="v" id="wOrders"></div><div class="s" id="wOrdersD"></div></div>
+          <div class="tile green"><div class="k">Ganarías extra vs hoy</div><div class="v" id="wDelta"></div></div>
+        </div>
 
         <div class="bar">
           <div class="seg-cost" id="segCost"></div>
@@ -531,10 +531,10 @@ function calc(){
   $('wNet').textContent=fmtS(w.net);
   $('wNetD').textContent='margen '+(what?((w.net/what)*100).toFixed(1):0)+'% · hoy: '+fmtS(netToday);
   $('wRev').textContent=fmt(w.r);
-  $('wAds').textContent='– '+fmt(w.a);
-  $('wAdsPctL').textContent='('+adsPctTxt+' · hoy '+fmt(ads)+')';
+  $('wAds').textContent=fmt(w.a);
+  $('wAdsPctL').textContent=adsPctTxt+' de la venta · hoy '+fmt(ads);
   $('wOrders').textContent=Math.round(w.o).toLocaleString('en-US');
-  $('wOrdersD').textContent='(hoy '+Math.round(orders).toLocaleString('en-US')+')';
+  $('wOrdersD').textContent='hoy '+Math.round(orders).toLocaleString('en-US');
   $('wDelta').textContent=(w.delta>=0?'+ ':'− ')+fmt(w.delta);
 
   const cost=Math.max(w.r-w.a-w.c-Math.max(w.net,0),0);
