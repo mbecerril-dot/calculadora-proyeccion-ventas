@@ -546,7 +546,7 @@ function calc(){
   $('projNote').textContent='Las proyecciones usan '+adsPctTxt+' de la venta como inversión en ads y mantienen tu mismo margen sobre producto'+(overNet?'; los gastos fijos se mantienen constantes':'')+'. "Ganas extra" compara contra tu utilidad de hoy ('+fmtS(netToday)+'). La fila azul es tu meta.';
 
   const body=$('projBody'); body.innerHTML='';
-  const rows=[1,1.25,1.5,2,2.5,3].map(mm=>scen(rev*mm));
+  const rows=[1.25,1.5,2,2.5,3].map(mm=>scen(rev*mm));
   if(!rows.some(x=>Math.abs(x.r-what)<1)){rows.push(w); rows.sort((a,b)=>a.r-b.r);}
   rows.forEach(s=>{
     const tr=document.createElement('tr');
