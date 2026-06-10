@@ -52,6 +52,11 @@
   .tg{display:flex; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content;}
   .tg button{border:none; background:transparent; color:var(--muted); padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:inherit;}
   .tg button.on{background:var(--panel2); color:var(--accent); font-weight:600;}
+  .modetabs{display:flex; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:20px;}
+  .modetabs button{flex:1; border:none; background:transparent; color:var(--muted); padding:9px 10px; font-size:13px; cursor:pointer; font-family:inherit;}
+  .modetabs button.on{background:var(--panel2); color:var(--accent); font-weight:600;}
+  .derived{background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12.5px; color:var(--muted); line-height:1.7; margin-bottom:20px;}
+  .derived b{color:var(--text);}
 
   .results-top{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:18px;}
   .metric{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:18px;}
@@ -96,7 +101,6 @@
   .hlrow td{color:var(--accent); font-weight:700;}
   .baserow td{color:var(--muted);}
 
-  /* selector de cliente discreto */
   #cBtn{
     width:14px; height:14px; border-radius:50%; border:none; cursor:pointer;
     background:var(--border); opacity:.35; margin-top:8px; flex-shrink:0;
@@ -133,32 +137,76 @@
 
   <div class="grid">
     <div class="card">
-      <h2>Datos actuales (mensual)</h2>
+      <h2>Información financiera</h2>
+      <div class="modetabs" id="modeTabs">
+        <button data-m="tw" class="on">Triple Whale</button>
+        <button data-m="unit">Unitaria</button>
+      </div>
 
-      <div class="ctrl">
-        <div class="ctrl-label"><span class="name">Facturación</span></div>
-        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="rev" value="1,539,047"></div>
-      </div>
-      <div class="ctrl">
-        <div class="ctrl-label"><span class="name">Gasto en ads</span></div>
-        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="ads" value="473,284"></div>
-      </div>
-      <div class="ctrl">
-        <div class="ctrl-label"><span class="name">Utilidad bruta</span></div>
-        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="gp" value="507,772"></div>
-        <div class="hint">Con envíos incluidos.</div>
-      </div>
       <div class="ctrl">
         <div class="ctrl-label"><span class="name">Ticket promedio</span></div>
         <div class="field"><span>$</span><input type="text" inputmode="numeric" id="aov" value="1,860"></div>
       </div>
       <div class="ctrl">
-        <div class="ctrl-label"><span class="name">Fee fijo actual</span></div>
+        <div class="ctrl-label"><span class="name">Gasto en ads</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="ads" value="473,284"></div>
+      </div>
+
+      <div id="modeTw">
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Facturación</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="rev" value="1,539,047"></div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Utilidad bruta</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="gp" value="507,772"></div>
+          <div class="hint">Con envíos incluidos.</div>
+        </div>
+      </div>
+
+      <div id="modeUnit" style="display:none">
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Pedidos al mes</span></div>
+          <div class="field"><input type="text" inputmode="numeric" id="uOrders" value="827"></div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">COGS por pedido</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="uCogs" value="560"></div>
+          <div class="hint">Lo que le cuesta el producto de un ticket promedio.</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Envío por pedido</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="uShip" value="120"></div>
+          <div class="hint">Solo si lo absorbe la tienda; si lo paga el comprador, pon 0.</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Comisión pasarela de pagos</span></div>
+          <div class="field"><input type="number" id="uGw" value="3.6" step="0.1" min="0" max="15"><span>%</span></div>
+        </div>
+        <div class="derived" id="derived"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Pago a la agencia actual (fee)</span></div>
         <div class="field"><span>$</span><input type="text" inputmode="numeric" id="fee" value="40,000"></div>
-        <div class="ctrl-label" style="margin:10px 0 6px"><span class="name" style="font-size:12.5px;color:var(--muted)">¿La utilidad ya lo tiene descontado?</span></div>
-        <div class="tg" id="tgFee">
-          <button data-v="yes" class="on">Sí, ya lo incluye</button>
-          <button data-v="no">No, falta</button>
+        <div id="feeTgWrap">
+          <div class="ctrl-label" style="margin:10px 0 6px"><span class="name" style="font-size:12.5px;color:var(--muted)">¿La utilidad ya lo tiene descontado?</span></div>
+          <div class="tg" id="tgFee">
+            <button data-v="yes" class="on">Sí, ya lo incluye</button>
+            <button data-v="no">No, falta</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name" style="font-size:13px;color:var(--muted)">Gastos fijos mensuales (opcional)</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="fixed" value="0"></div>
+        <div id="netTgWrap" style="display:none">
+          <div class="ctrl-label" style="margin:10px 0 6px"><span class="name" style="font-size:12.5px;color:var(--muted)">Proyectar sobre</span></div>
+          <div class="tg" id="tgNet">
+            <button data-v="gross" class="on">Utilidad bruta</button>
+            <button data-v="net">Utilidad neta</button>
+          </div>
         </div>
       </div>
 
@@ -184,7 +232,7 @@
           <tr><td class="row-label"><span class="dot d-ads"></span>Gasto en ads <small id="hAdsPct" style="color:var(--muted)"></small></td><td id="hAds" class="neg"></td></tr>
           <tr><td class="row-label"><span class="dot d-purple"></span>ROAS · Pedidos · Ticket</td><td id="hMix"></td></tr>
           <tr><td class="row-label"><span class="dot d-agency"></span>Nos pagas hoy <small id="hFeeOrder" style="color:var(--muted)"></small></td><td id="hFee"></td></tr>
-          <tr><td class="row-label"><span class="dot d-client"></span>Tu utilidad hoy <small id="hMargin" style="color:var(--muted)"></small></td><td id="hNet"></td></tr>
+          <tr><td class="row-label"><span class="dot d-client"></span><span id="hNetLbl">Tu utilidad hoy</span> <small id="hMargin" style="color:var(--muted)"></small></td><td id="hNet"></td></tr>
         </table>
       </div>
 
@@ -256,15 +304,17 @@ const $=id=>document.getElementById(id);
 const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString('en-US');
 const fmtS=n=>(n<0?'−':'')+fmt(n);
 const val=id=>+($(id).value.replace(/[^0-9.]/g,''))||0;
-const NUM_IDS=['rev','ads','gp','aov','fee','newFee'];
+const NUM_IDS=['rev','ads','gp','aov','fee','newFee','uOrders','uCogs','uShip','fixed'];
 
 const DEFAULT_CLIENTS={
-  koneli:{name:'Koneli', rev:1539047, ads:473284, gp:507772, aov:1860, fee:40000, feeIncluded:true, newFee:40000, pct:3, adsPct:null, what:2000000}
+  koneli:{name:'Koneli', mode:'tw', rev:1539047, ads:473284, gp:507772, aov:1860, fee:40000, feeIncluded:true,
+    uOrders:827, uCogs:560, uShip:120, uGw:3.6, fixed:0, useNet:false,
+    newFee:40000, pct:3, adsPct:null, what:2000000}
 };
 let clients=JSON.parse(localStorage.getItem('proyClients')||'null')||DEFAULT_CLIENTS;
 let current=location.hash.replace('#','')||localStorage.getItem('proyCurrent')||Object.keys(clients)[0];
 if(!clients[current]) current=Object.keys(clients)[0];
-let feeIncluded=true, adsPctTouched=false, loading=false;
+let mode='tw', feeIncluded=true, useNet=false, adsPctTouched=false, loading=false;
 
 function save(){
   localStorage.setItem('proyClients',JSON.stringify(clients));
@@ -272,30 +322,65 @@ function save(){
 }
 function snapshot(){
   const c=clients[current];
+  c.mode=mode;
   c.rev=val('rev'); c.ads=val('ads'); c.gp=val('gp'); c.aov=val('aov');
   c.fee=val('fee'); c.newFee=val('newFee'); c.pct=+$('pct').value;
+  c.uOrders=val('uOrders'); c.uCogs=val('uCogs'); c.uShip=val('uShip'); c.uGw=+$('uGw').value||0;
+  c.fixed=val('fixed'); c.useNet=useNet;
   c.feeIncluded=feeIncluded;
   c.adsPct=adsPctTouched? +$('adsPctIn').value : null;
   c.what=+$('what').value;
   save();
 }
-function setNum(id,n){ $(id).value=Math.round(n).toLocaleString('en-US'); }
+function setNum(id,n){ $(id).value=Math.round(n||0).toLocaleString('en-US'); }
 function load(){
   loading=true;
   const c=clients[current];
+  mode=c.mode||'tw';
   setNum('rev',c.rev); setNum('ads',c.ads); setNum('gp',c.gp); setNum('aov',c.aov);
   setNum('fee',c.fee); setNum('newFee',c.newFee);
+  setNum('uOrders',c.uOrders); setNum('uCogs',c.uCogs); setNum('uShip',c.uShip); setNum('fixed',c.fixed);
+  $('uGw').value=c.uGw!=null?c.uGw:3.6;
   $('pct').value=c.pct;
   feeIncluded=c.feeIncluded!==false;
+  useNet=!!c.useNet;
   [...$('tgFee').children].forEach(x=>x.classList.toggle('on',x.dataset.v===(feeIncluded?'yes':'no')));
+  [...$('tgNet').children].forEach(x=>x.classList.toggle('on',x.dataset.v===(useNet?'net':'gross')));
+  [...$('modeTabs').children].forEach(x=>x.classList.toggle('on',x.dataset.m===mode));
   adsPctTouched=c.adsPct!=null;
   if(adsPctTouched) $('adsPctIn').value=c.adsPct;
-  $('what').min=c.rev; $('what').max=c.rev*4; $('what').value=Math.max(c.what||c.rev*1.3,c.rev);
+  const f=fin();
+  $('what').min=f.rev; $('what').max=f.rev*4; $('what').value=Math.max(c.what||f.rev*1.3,f.rev);
   $('clientTitle').textContent=c.name;
   document.title='Proyección de crecimiento — '+c.name;
   loading=false;
-  buildMenu(); calc();
+  applyMode(); buildMenu(); calc();
 }
+
+function fin(){
+  const aov=val('aov'), ads=val('ads');
+  if(mode==='unit'){
+    const orders=val('uOrders'), cogs=val('uCogs'), ship=val('uShip'), gw=(+$('uGw').value||0)/100;
+    const rev=orders*aov;
+    const gp=rev - orders*(cogs+ship) - rev*gw - ads;
+    return {rev,ads,gp,aov,orders,unit:true};
+  }
+  const rev=val('rev'), gp=val('gp');
+  return {rev,ads,gp,aov,orders:aov?rev/aov:0,unit:false};
+}
+
+function applyMode(){
+  $('modeTw').style.display=mode==='tw'?'block':'none';
+  $('modeUnit').style.display=mode==='unit'?'block':'none';
+  $('feeTgWrap').style.display=mode==='tw'?'block':'none';
+}
+
+$('modeTabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  mode=b.dataset.m;
+  [...$('modeTabs').children].forEach(x=>x.classList.toggle('on',x===b));
+  applyMode(); snapshot(); calc();
+});
 
 function buildMenu(){
   const m=$('cMenu'); m.innerHTML='';
@@ -343,22 +428,37 @@ $('tgFee').addEventListener('click',e=>{
   [...$('tgFee').children].forEach(x=>x.classList.toggle('on',x===b));
   snapshot(); calc();
 });
+$('tgNet').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  useNet=b.dataset.v==='net';
+  [...$('tgNet').children].forEach(x=>x.classList.toggle('on',x===b));
+  snapshot(); calc();
+});
 
 const PRESETS=[1.25,1.5,2,2.5,3];
 const pc=$('presets');
 PRESETS.forEach(p=>{
   const b=document.createElement('button');
   b.textContent='×'+p;
-  b.onclick=()=>{ $('what').value=val('rev')*p; snapshot(); calc(); };
+  b.onclick=()=>{ $('what').value=fin().rev*p; snapshot(); calc(); };
   pc.appendChild(b);
 });
 
 function calc(){
   if(loading) return;
-  const rev=val('rev'), ads=val('ads'), gp=val('gp');
-  const aov=val('aov'), pct=+$('pct').value/100;
-  const fee=val('fee'), newFee=val('newFee');
+  const f=fin();
+  const rev=f.rev, ads=f.ads, gp=f.gp, aov=f.aov, orders=f.orders;
+  const pct=+$('pct').value/100;
+  const fee=val('fee'), newFee=val('newFee'), fixed=val('fixed');
   $('pctOut').textContent=(pct*100%1?(pct*100).toFixed(1):(pct*100))+'%';
+
+  $('netTgWrap').style.display=fixed>0?'block':'none';
+  const overNet=useNet&&fixed>0;
+
+  if(f.unit){
+    const cpa=orders? ads/orders : 0;
+    $('derived').innerHTML='Con estos datos: facturación <b>'+fmt(rev)+'</b> · CPA <b>'+fmt(cpa)+'</b> · utilidad bruta <b>'+fmtS(gp)+'</b> (margen <b>'+(rev?((gp/rev)*100).toFixed(1):0)+'%</b>)';
+  }
 
   $('what').min=rev; $('what').max=rev*4||100;
   if(+$('what').value<rev) $('what').value=rev;
@@ -369,9 +469,9 @@ function calc(){
   const adsPctTxt=(adsPctProj*100).toFixed(1)+'%';
   $('adsPctOut').textContent=adsPctTxt;
 
-  const orders=aov? rev/aov : 0;
-  const varProfit=feeIncluded? gp+fee : gp;
-  const netToday=feeIncluded? gp : gp-fee;
+  const incl=f.unit? false : feeIncluded;
+  const varProfit=incl? gp+fee : gp;
+  const netToday=(incl? gp : gp-fee)-(overNet?fixed:0);
   const preAdsMargin=rev? (varProfit+ads)/rev : 0;
 
   $('hRev').textContent=fmt(rev);
@@ -380,13 +480,14 @@ function calc(){
   $('hMix').textContent=(ads?(rev/ads).toFixed(2):'–')+' · '+Math.round(orders).toLocaleString('en-US')+' · '+fmt(aov);
   $('hFee').textContent=fmt(fee);
   $('hFeeOrder').textContent=orders?'('+fmt(fee/orders)+' por pedido · '+(aov?(((fee/orders)/aov)*100).toFixed(1):0)+'% del ticket)':'';
+  $('hNetLbl').textContent=overNet?'Tu utilidad neta hoy':'Tu utilidad hoy';
   $('hNet').textContent=fmtS(netToday);
-  $('hMargin').textContent='(margen '+(rev?((netToday/rev)*100).toFixed(1):0)+'%)';
+  $('hMargin').textContent='(margen '+(rev?((netToday/rev)*100).toFixed(1):0)+'%'+(overNet?' · después de gastos fijos':'')+')';
 
   function scen(r){
     const c=r*pct+newFee;
     const o=aov? r/aov : 0;
-    const net=preAdsMargin*r - r*adsPctProj - c;
+    const net=preAdsMargin*r - r*adsPctProj - c - (overNet?fixed:0);
     return {r,a:r*adsPctProj,c,o,net,delta:net-netToday};
   }
   const what=+$('what').value;
@@ -414,7 +515,7 @@ function calc(){
   const pctMore=netToday?((w.delta/netToday)*100).toFixed(0):'–';
   $('contrast').innerHTML='Si te quedas como hoy: <b>'+fmtS(netToday)+'</b> al mes. Con la propuesta, aun pagándonos <b style="color:var(--agency)">'+fmt(w.c)+'</b>, te quedan <b style="color:var(--client)">'+fmtS(w.net)+'</b> — es decir <b style="color:var(--client)">'+(w.delta>=0?'+':'−')+fmt(w.delta)+' ('+pctMore+'% más)</b> cada mes.';
 
-  $('projNote').textContent='Las proyecciones usan '+adsPctTxt+' de la venta como inversión en ads y mantienen tu mismo margen sobre producto. "Ganas extra" compara contra tu utilidad de hoy ('+fmtS(netToday)+'). La fila azul es tu meta.';
+  $('projNote').textContent='Las proyecciones usan '+adsPctTxt+' de la venta como inversión en ads y mantienen tu mismo margen sobre producto'+(overNet?'; los gastos fijos se mantienen constantes':'')+'. "Ganas extra" compara contra tu utilidad de hoy ('+fmtS(netToday)+'). La fila azul es tu meta.';
 
   const body=$('projBody'); body.innerHTML='';
   const rows=[1,1.25,1.5,2,2.5,3].map(mm=>scen(rev*mm));
@@ -430,6 +531,7 @@ function calc(){
 }
 
 NUM_IDS.forEach(id=>$(id).addEventListener('input',e=>{addCommas(e.target);snapshot();calc();}));
+$('uGw').addEventListener('input',()=>{snapshot();calc();});
 $('pct').addEventListener('input',()=>{snapshot();calc();});
 $('what').addEventListener('input',()=>{snapshot();calc();});
 $('adsPctIn').addEventListener('input',()=>{adsPctTouched=true;snapshot();calc();});

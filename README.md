@@ -6,7 +6,11 @@ Herramienta interactiva para presentar propuestas a clientes de la agencia: a pa
 
 Abre `index.html` en cualquier navegador. No necesita servidor ni dependencias.
 
-- **Panel izquierdo** — datos actuales del cliente (la utilidad bruta va con envíos incluidos; indica si ya trae descontado el fee fijo) y el nuevo cobro propuesto (nueva iguala + % sobre venta).
+- **Panel izquierdo** — información financiera del cliente en dos modos (pestañas arriba del panel):
+  - **Triple Whale**: cuando hay datos directos — facturación, gasto en ads y utilidad bruta (con envíos incluidos; indica si ya trae descontado el fee).
+  - **Unitaria**: cuando no hay Triple Whale — ticket promedio (Shopify), pedidos al mes, gasto en ads, COGS por pedido, envío por pedido (si lo absorbe la tienda) y % de pasarela de pagos. La calculadora arma la facturación, el CPA y la utilidad bruta automáticamente (se muestran en la cajita de "Con estos datos…").
+  - **Gastos fijos (opcional)**: si se llenan, aparece el switch para proyectar sobre utilidad neta en lugar de bruta; los gastos fijos se mantienen constantes al escalar. El enfoque por defecto sigue siendo utilidad bruta.
+  - Abajo va el nuevo cobro propuesto (nueva iguala + % sobre venta).
 - **Hoy** — desglose actual: facturación, ads (% de la venta), ROAS/pedidos/ticket, lo que paga hoy (por pedido y % del ticket) y su utilidad con margen real.
 - **¿Qué pasaría si vendemos…?** — slider de meta de venta con presets (×1.25 a ×3) y slider de % de gasto en ads (arranca en el % actual). Muestra las dos métricas grandes (lo que nos pagaría / su utilidad), el desglose, la barra de distribución de cada peso vendido y el contraste "quedarte como hoy vs tomar la propuesta".
 - **Otras proyecciones** — tabla a ×1.25, ×1.5, ×2, ×2.5 y ×3 de la facturación base; la fila azul es la meta seleccionada.
