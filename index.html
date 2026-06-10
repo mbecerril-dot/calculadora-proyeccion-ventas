@@ -527,7 +527,7 @@ function calc(){
   const w=scen(what);
 
   $('wPay').textContent=fmt(w.c);
-  $('wPayD').textContent='iguala '+fmt(newFee)+' + '+(pct*100)+'% de venta';
+  $('wPayD').textContent='fee de la agencia '+fmt(newFee)+' + '+(pct*100)+'% de venta';
   $('wNet').textContent=fmtS(w.net);
   $('wNetD').textContent='margen '+(what?((w.net/what)*100).toFixed(1):0)+'% · hoy: '+fmtS(netToday);
   $('wRev').textContent=fmt(w.r);
