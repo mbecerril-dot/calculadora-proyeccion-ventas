@@ -282,6 +282,17 @@
           <div class="tile solidgreen big"><div class="k">Ganarías extra cada mes</div><div class="v" id="wDelta"></div></div>
         </div>
 
+        <h2 style="margin:20px 0 8px">¿De dónde sale el cobro?</h2>
+        <table>
+          <tr><td class="row-label">Venta meta</td><td id="bMeta"></td></tr>
+          <tr><td class="row-label">(−) Tu venta actual de hoy — la base de referencia</td><td id="bBase"></td></tr>
+          <tr><td class="row-label">(=) Incremento que te generamos</td><td id="bInc"></td></tr>
+          <tr><td class="row-label">(×) <span id="bPctL"></span> solo sobre ese incremento</td><td id="bVar"></td></tr>
+          <tr><td class="row-label">(+) Fee base mensual</td><td id="bFee"></td></tr>
+          <tr><td class="row-label" style="color:var(--text);font-weight:600">(=) Total que nos pagarías</td><td id="bTot" style="color:var(--agency)"></td></tr>
+        </table>
+        <div class="hint" style="margin-top:8px" id="bNote"></div>
+
         <div class="bar">
           <div class="seg-cost" id="segCost"></div>
           <div class="seg-ads" id="segAds"></div>
@@ -532,6 +543,15 @@ function calc(){
   $('wOrders').textContent=Math.round(w.o).toLocaleString('en-US');
   $('wOrdersD').textContent='hoy son '+Math.round(orders).toLocaleString('en-US');
   $('wDelta').textContent=(w.delta>=0?'+':'−')+fmt(w.delta);
+  const incW=Math.max(what-rev,0);
+  $('bMeta').textContent=fmt(what);
+  $('bBase').textContent='− '+fmt(rev);
+  $('bInc').textContent=fmt(incW);
+  $('bPctL').textContent=(pct*100%1?(pct*100).toFixed(1):(pct*100))+'%';
+  $('bVar').textContent=fmt(incW*pct);
+  $('bFee').textContent='+ '+fmt(newFee);
+  $('bTot').textContent=fmt(w.c);
+  $('bNote').textContent='Tu venta actual de '+fmt(rev)+' no paga ningún porcentaje: el '+(pct*100%1?(pct*100).toFixed(1):(pct*100))+'% se multiplica únicamente por la venta nueva que logremos por encima de esa base.';
 
   const cost=Math.max(w.r-w.a-w.c-Math.max(w.net,0),0);
   const total=w.r||1;
