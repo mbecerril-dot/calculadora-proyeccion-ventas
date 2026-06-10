@@ -308,7 +308,7 @@ const NUM_IDS=['rev','ads','gp','aov','fee','newFee','uOrders','uCogs','uShip','
 
 const DEFAULT_CLIENTS={
   koneli:{name:'Koneli', mode:'tw', rev:1539047, ads:473284, gp:507772, aov:1860, fee:40000, feeIncluded:true,
-    uOrders:827, uCogs:560, uShip:120, uGw:3.6, fixed:0, useNet:false,
+    uOrders:827, uCogs:459, uShip:100, uGw:3.6, fixed:0, useNet:false,
     newFee:40000, pct:3, adsPct:null, what:2000000}
 };
 let clients=JSON.parse(localStorage.getItem('proyClients')||'null')||DEFAULT_CLIENTS;
@@ -457,7 +457,20 @@ function calc(){
 
   if(f.unit){
     const cpa=orders? ads/orders : 0;
-    $('derived').innerHTML='Con estos datos: facturación <b>'+fmt(rev)+'</b> · CPA <b>'+fmt(cpa)+'</b> · utilidad bruta <b>'+fmtS(gp)+'</b> (margen <b>'+(rev?((gp/rev)*100).toFixed(1):0)+'%</b>)';
+    let d='Con estos datos: facturación <b>'+fmt(rev)+'</b> · CPA <b>'+fmt(cpa)+'</b> · utilidad bruta <b>'+fmtS(gp)+'</b> (margen <b>'+(rev?((gp/rev)*100).toFixed(1):0)+'%</b>)';
+    const twRev=val('rev'), twGp=val('gp');
+    if(twRev>0&&twGp>0){
+      const twNet=(feeIncluded? twGp : twGp-fee);
+      const uNet=gp-fee;
+      const diff=uNet-twNet;
+      if(Math.abs(diff)<Math.max(twNet*0.02,5000)){
+        d+='<br>✅ Cuadra con Triple Whale ('+fmtS(twNet)+' de utilidad hoy).';
+      } else {
+        const perOrder=orders? Math.abs(diff)/orders : 0;
+        d+='<br>⚠️ Triple Whale reporta <b>'+fmtS(twNet)+'</b> de utilidad hoy — aquí sale '+fmtS(uNet)+'. Diferencia de <b>'+fmtS(diff)+'</b> ≈ <b>'+fmt(perOrder)+' por pedido</b>: ajusta COGS, envío o pasarela hasta cuadrar.';
+      }
+    }
+    $('derived').innerHTML=d;
   }
 
   $('what').min=rev; $('what').max=rev*4||100;
