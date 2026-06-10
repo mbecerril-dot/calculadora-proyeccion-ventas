@@ -279,7 +279,7 @@
           <div class="tile big"><div class="k">Nos pagarías al mes</div><div class="v" id="wPay"></div><div class="s" id="wPayD"></div></div>
         </div>
         <div class="tiles" style="grid-template-columns:1fr">
-          <div class="tile solidgreen big"><div class="k">Ganarías extra cada mes</div><div class="v" id="wDelta"></div></div>
+          <div class="tile solidgreen big"><div class="k">Ganarías extra cada mes (margen bruto)</div><div class="v" id="wDelta"></div><div class="s" id="wDeltaT" style="color:#a3d977"></div></div>
         </div>
 
         <h2 style="margin:20px 0 8px">¿De dónde sale el cobro?</h2>
@@ -541,6 +541,7 @@ function calc(){
   $('wOrders').textContent=Math.round(w.o).toLocaleString('en-US');
   $('wOrdersD').textContent='hoy son '+Math.round(orders).toLocaleString('en-US');
   $('wDelta').textContent=(w.delta>=0?'+':'−')+fmt(w.delta);
+  $('wDeltaT').textContent='utilidad total en la meta: '+fmtS(w.net);
   const pctTxt=(pct*100%1?(pct*100).toFixed(1):(pct*100))+'%';
   $('bMeta').textContent=fmt(what);
   $('bPctL').textContent=pctTxt;
