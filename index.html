@@ -66,6 +66,10 @@
   .tile .s{font-size:11.5px; color:var(--muted); margin-top:2px;}
   .tile.green{border-color:rgba(34,197,94,.4);} .tile.green .v{color:var(--client);}
   .tile.amber{border-color:rgba(245,158,11,.4);} .tile.amber .v{color:var(--agency);}
+  .tile.big .v{font-size:24px;}
+  .tile.solidgreen{background:#2d4f1e; border-color:#3c6429;}
+  .tile.solidgreen .k{color:#a3d977;}
+  .tile.solidgreen .v{color:#b5e890;}
   .results-top{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:18px;}
   .metric{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:18px;}
   .metric .k{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;}
@@ -266,24 +270,14 @@
           <div class="hint">Arranca en tu % actual; muévelo para simular más o menos inversión.</div>
         </div>
 
-        <div class="results-top">
-          <div class="metric client">
-            <div class="k">Tu utilidad</div>
-            <div class="v" id="wNet">$0</div>
-            <div class="pct" id="wNetD"></div>
-          </div>
-          <div class="metric agency">
-            <div class="k">Nos pagarías</div>
-            <div class="v" id="wPay">$0</div>
-            <div class="pct" id="wPayD"></div>
-          </div>
-        </div>
-
         <div class="tiles">
-          <div class="tile"><div class="k">Venta proyectada</div><div class="v" id="wRev"></div></div>
-          <div class="tile"><div class="k">Inversión en ads</div><div class="v" id="wAds"></div><div class="s" id="wAdsPctL"></div></div>
+          <div class="tile"><div class="k">Invertirías en ads (<span id="wAdsPctL"></span> de la venta)</div><div class="v" id="wAds"></div><div class="s" id="wAdsD"></div></div>
           <div class="tile"><div class="k">Pedidos al mes</div><div class="v" id="wOrders"></div><div class="s" id="wOrdersD"></div></div>
-          <div class="tile green"><div class="k">Ganarías extra vs hoy</div><div class="v" id="wDelta"></div></div>
+          <div class="tile"><div class="k">Nos pagarías al mes</div><div class="v" id="wPay"></div><div class="s" id="wPayD"></div></div>
+        </div>
+        <div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+          <div class="tile big"><div class="k">Tu utilidad al mes</div><div class="v" id="wNet"></div><div class="s" id="wNetD"></div></div>
+          <div class="tile solidgreen big"><div class="k">Ganarías extra cada mes</div><div class="v" id="wDelta"></div></div>
         </div>
 
         <div class="bar">
@@ -527,15 +521,15 @@ function calc(){
   const w=scen(what);
 
   $('wPay').textContent=fmt(w.c);
-  $('wPayD').textContent='fee de la agencia '+fmt(newFee)+' + '+(pct*100)+'% de venta';
+  $('wPayD').textContent='fee '+fmt(newFee)+' + '+(pct*100)+'% de venta';
   $('wNet').textContent=fmtS(w.net);
-  $('wNetD').textContent='margen '+(what?((w.net/what)*100).toFixed(1):0)+'% · hoy: '+fmtS(netToday);
-  $('wRev').textContent=fmt(w.r);
+  $('wNetD').textContent='hoy: '+fmtS(netToday)+' · margen '+(what?((w.net/what)*100).toFixed(1):0)+'%';
   $('wAds').textContent=fmt(w.a);
-  $('wAdsPctL').textContent=adsPctTxt+' de la venta · hoy '+fmt(ads);
+  $('wAdsPctL').textContent=adsPctTxt;
+  $('wAdsD').textContent='hoy inviertes '+fmt(ads)+' ('+(adsPctBase*100).toFixed(1)+'%)';
   $('wOrders').textContent=Math.round(w.o).toLocaleString('en-US');
-  $('wOrdersD').textContent='hoy '+Math.round(orders).toLocaleString('en-US');
-  $('wDelta').textContent=(w.delta>=0?'+ ':'− ')+fmt(w.delta);
+  $('wOrdersD').textContent='hoy son '+Math.round(orders).toLocaleString('en-US');
+  $('wDelta').textContent=(w.delta>=0?'+':'−')+fmt(w.delta);
 
   const cost=Math.max(w.r-w.a-w.c-Math.max(w.net,0),0);
   const total=w.r||1;
