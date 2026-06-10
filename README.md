@@ -1,5 +1,10 @@
 # Proyección de crecimiento (calculadora por cliente)
 
+Hay dos calculadoras independientes (no comparten datos ni clientes):
+
+- `index.html` — cobro de **fee + % sobre la venta total**.
+- `incremento.html` — cobro de **fee + % solo sobre el incremento de venta** vs la facturación actual del cliente (si hoy vende $1.5M y la meta es $3.2M, el % aplica únicamente sobre los $1.7M nuevos).
+
 Herramienta interactiva para presentar propuestas a clientes de la agencia: a partir de los datos actuales de una marca (facturación, gasto en ads, utilidad bruta y ticket promedio) muestra el escenario de hoy, el nuevo cobro propuesto (iguala + % sobre venta) y proyecciones de escalamiento en lenguaje simple para el cliente.
 
 ## Cómo usarla

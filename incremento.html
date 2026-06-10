@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyección de crecimiento</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232d; --border:#2a3340;
+    --text:#e6edf3; --muted:#8b98a5; --accent:#3b82f6;
+    --ads:#ef4444; --cost:#64748b; --agency:#f59e0b; --client:#22c55e; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+    padding:32px 20px; min-height:100vh;
+  }
+  .wrap{max-width:1080px; margin:0 auto;}
+  header{margin-bottom:28px; display:flex; justify-content:space-between; align-items:flex-start;}
+  h1{font-size:24px; font-weight:700; letter-spacing:-0.02em;}
+  .sub{color:var(--muted); font-size:14px; margin-top:4px;}
+  .grid{display:grid; grid-template-columns:380px 1fr; gap:20px; align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px;}
+  .card h2{font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:18px; font-weight:600;}
+  .ctrl{margin-bottom:20px;}
+  .ctrl:last-child{margin-bottom:0;}
+  .ctrl-label{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .ctrl-label .name{font-size:14px; font-weight:500;}
+  .ctrl-label .val{font-size:15px; font-weight:700; color:var(--accent);}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:6px; border-radius:3px;
+    background:var(--panel2); outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
+    background:var(--accent); border:3px solid var(--bg); cursor:pointer;
+    box-shadow:0 0 0 1px var(--accent);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%; background:var(--accent);
+    border:3px solid var(--bg); cursor:pointer;
+  }
+  .field{display:flex; align-items:center; gap:8px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:8px 12px;}
+  .field span{color:var(--muted); font-size:14px;}
+  .field input{
+    background:transparent; border:none; color:var(--text); font-size:15px; font-weight:600;
+    width:100%; outline:none; font-family:inherit;
+  }
+  .hint{font-size:12px; color:var(--muted); margin-top:6px;}
+  .tg{display:flex; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content;}
+  .tg button{border:none; background:transparent; color:var(--muted); padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:inherit;}
+  .tg button.on{background:var(--panel2); color:var(--accent); font-weight:600;}
+  .modetabs{display:flex; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:20px;}
+  .modetabs button{flex:1; border:none; background:transparent; color:var(--muted); padding:9px 10px; font-size:13px; cursor:pointer; font-family:inherit;}
+  .modetabs button.on{background:var(--panel2); color:var(--accent); font-weight:600;}
+  .derived{background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12.5px; color:var(--muted); line-height:1.7; margin-bottom:20px;}
+  .derived b{color:var(--text);}
+
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+  .tiles + .tiles{margin-top:10px;}
+  .tile{background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:14px;}
+  .tile .k{font-size:11.5px; color:var(--muted); margin-bottom:4px;}
+  .tile .v{font-size:20px; font-weight:800; letter-spacing:-0.02em; font-variant-numeric:tabular-nums;}
+  .tile .s{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .tile.green{border-color:rgba(34,197,94,.4);} .tile.green .v{color:var(--client);}
+  .tile.amber{border-color:rgba(245,158,11,.4);} .tile.amber .v{color:var(--agency);}
+  .tile.big .v{font-size:24px;}
+  .tile.solidgreen{background:#2d4f1e; border-color:#3c6429;}
+  .tile.solidgreen .k{color:#a3d977;}
+  .tile.solidgreen .v{color:#b5e890;}
+  .results-top{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:18px;}
+  .metric{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:18px;}
+  .metric .k{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;}
+  .metric .v{font-size:26px; font-weight:800; letter-spacing:-0.02em;}
+  .metric .pct{font-size:13px; color:var(--muted); margin-top:2px;}
+  .metric.agency{border-color:rgba(245,158,11,.4);}
+  .metric.agency .v{color:var(--agency);}
+  .metric.client{border-color:rgba(34,197,94,.4);}
+  .metric.client .v{color:var(--client);}
+
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  td{padding:10px 4px; border-bottom:1px solid var(--border);}
+  td:last-child{text-align:right; font-weight:700; font-variant-numeric:tabular-nums;}
+  tr:last-child td{border-bottom:none;}
+  .row-label{color:var(--muted);}
+  .dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; vertical-align:middle;}
+  .d-ads{background:var(--ads);} .d-cost{background:var(--cost);} .d-agency{background:var(--agency);}
+  .d-client{background:var(--client);} .d-blue{background:var(--accent);} .d-purple{background:var(--purple);}
+
+  .bar{display:flex; height:26px; border-radius:8px; overflow:hidden; margin:16px 0 8px;}
+  .bar > div{height:100%; transition:width .15s ease;}
+  .seg-ads{background:var(--ads);} .seg-cost{background:var(--cost);}
+  .seg-agency{background:var(--agency);} .seg-client{background:var(--client);}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted);}
+  .legend span{display:flex; align-items:center;}
+
+  .presets{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .presets button{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    border-radius:7px; padding:6px 11px; font-size:12.5px; cursor:pointer; font-family:inherit;
+  }
+  .presets button:hover{border-color:var(--accent); color:var(--accent);}
+  .footnote{font-size:12.5px; color:var(--muted); margin-top:18px; line-height:1.6;}
+  .neg{color:var(--ads)!important;}
+  .proj{margin-top:20px;}
+  th{font-size:12px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); text-align:right; padding:8px 4px; border-bottom:1px solid var(--border); font-weight:600;}
+  th:first-child{text-align:left;}
+  .proj td{text-align:right; font-variant-numeric:tabular-nums; font-weight:500;}
+  .proj td:first-child{text-align:left;}
+  .hlrow{background:rgba(59,130,246,.12);}
+  .hlrow td{color:var(--accent); font-weight:700;}
+  .baserow td{color:var(--muted);}
+
+  #cBtn{
+    width:14px; height:14px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--border); opacity:.35; margin-top:8px; flex-shrink:0;
+  }
+  #cBtn:hover{opacity:.9; background:var(--accent);}
+  #cMenu{
+    position:absolute; right:0; top:24px; background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:6px; min-width:190px; display:none; z-index:10;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  #cMenu.open{display:block;}
+  #cMenu button{
+    display:block; width:100%; text-align:left; background:transparent; border:none; color:var(--text);
+    padding:8px 10px; border-radius:7px; cursor:pointer; font-size:13.5px; font-family:inherit;
+  }
+  #cMenu button:hover{background:var(--panel2);}
+  #cMenu button.cur{color:var(--accent); font-weight:600;}
+  #cMenu .sepa{border-top:1px solid var(--border); margin:6px 0;}
+  #cMenu .small{font-size:12.5px; color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Proyección de crecimiento — <span id="clientTitle">Cliente</span></h1>
+      <div class="sub">Mueve la meta de venta y mira cuánto inviertes, cuánto nos pagas y cuánto te queda.</div>
+    </div>
+    <div style="position:relative">
+      <button id="cBtn" title=""></button>
+      <div id="cMenu"></div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Información financiera</h2>
+      <div class="modetabs" id="modeTabs">
+        <button data-m="tw" class="on">Triple Whale</button>
+        <button data-m="unit">Unitaria</button>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Ticket promedio</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="aov" value="1,860"></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Gasto en ads</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="ads" value="473,284"></div>
+      </div>
+
+      <div id="modeTw">
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Facturación</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="rev" value="1,539,047"></div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Utilidad bruta</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="gp" value="507,772"></div>
+          <div class="hint">Con envíos incluidos.</div>
+        </div>
+      </div>
+
+      <div id="modeUnit" style="display:none">
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Pedidos al mes</span></div>
+          <div class="field"><input type="text" inputmode="numeric" id="uOrders" value="827"></div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">COGS por pedido</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="uCogs" value="560"></div>
+          <div class="hint">Lo que le cuesta el producto de un ticket promedio.</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Envío por pedido</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="uShip" value="120"></div>
+          <div class="hint">Solo si lo absorbe la tienda; si lo paga el comprador, pon 0.</div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Comisión pasarela de pagos</span></div>
+          <div class="field"><input type="number" id="uGw" value="3.6" step="0.1" min="0" max="15"><span>%</span></div>
+        </div>
+        <div class="derived" id="derived"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Pago a la agencia actual (fee)</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="fee" value="40,000"></div>
+        <div id="feeTgWrap">
+          <div class="ctrl-label" style="margin:10px 0 6px"><span class="name" style="font-size:12.5px;color:var(--muted)">¿La utilidad ya lo tiene descontado?</span></div>
+          <div class="tg" id="tgFee">
+            <button data-v="yes" class="on">Sí, ya lo incluye</button>
+            <button data-v="no">No, falta</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name" style="font-size:13px;color:var(--muted)">Gastos fijos mensuales (opcional)</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="fixed" value="0"></div>
+        <div id="netTgWrap" style="display:none">
+          <div class="ctrl-label" style="margin:10px 0 6px"><span class="name" style="font-size:12.5px;color:var(--muted)">Proyectar sobre</span></div>
+          <div class="tg" id="tgNet">
+            <button data-v="gross" class="on">Utilidad bruta</button>
+            <button data-v="net">Utilidad neta</button>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:22px 0;">
+      <h2>Nuevo cobro propuesto</h2>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Nueva iguala mensual</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="newFee" value="40,000"></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">% sobre el incremento de venta</span><span class="val" id="pctOut">8%</span></div>
+        <input type="range" id="pct" min="0" max="25" step="0.5" value="8">
+        <div class="hint">Se cobra solo sobre la venta que crezca por encima de tu facturación actual.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:18px">
+        <h2>Hoy</h2>
+        <div class="tiles">
+          <div class="tile"><div class="k" id="hNetLbl2">Margen real hoy</div><div class="v" id="hMargin"></div></div>
+          <div class="tile"><div class="k">ROAS</div><div class="v" id="hRoas"></div></div>
+          <div class="tile"><div class="k">% gasto en ads</div><div class="v" id="hAdsPct"></div><div class="s" id="hAdsMonto"></div></div>
+          <div class="tile"><div class="k">Pedidos / mes</div><div class="v" id="hOrders"></div></div>
+          <div class="tile"><div class="k">Ticket promedio</div><div class="v" id="hTicket"></div></div>
+          <div class="tile"><div class="k" id="hNetLbl">Tu utilidad hoy</div><div class="v" id="hNet"></div><div class="s" id="hRevS"></div></div>
+        </div>
+        <h2 style="margin:18px 0 10px">Fee de la agencia</h2>
+        <div class="tiles">
+          <div class="tile"><div class="k">Fee mensual</div><div class="v" id="hFee"></div></div>
+          <div class="tile"><div class="k">Cobro actual por pedido</div><div class="v" id="hFeeOrder"></div></div>
+          <div class="tile"><div class="k">% del ticket promedio</div><div class="v" id="hFeePct"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>¿Qué pasaría si vendemos…?</h2>
+
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Meta de venta mensual</span><span class="field" style="padding:5px 10px;gap:4px"><span style="color:var(--accent);font-weight:700">$</span><input type="text" inputmode="numeric" id="whatBox" value="2,000,000" style="color:var(--accent);font-weight:700;font-size:15px;width:105px"></span></div>
+          <input type="range" id="what" min="1539047" max="6156188" step="any" value="2000000">
+          <div class="presets" id="presets"></div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">% de gasto en ads</span><span class="val" id="adsPctOut">30.8%</span></div>
+          <input type="range" id="adsPctIn" min="5" max="60" step="any" value="30.8">
+          <div class="hint">Arranca en tu % actual; muévelo para simular más o menos inversión.</div>
+        </div>
+
+        <div class="tiles">
+          <div class="tile"><div class="k">Invertirías en ads (<span id="wAdsPctL"></span> de la venta)</div><div class="v" id="wAds"></div><div class="s" id="wAdsD"></div></div>
+          <div class="tile"><div class="k">Pedidos al mes</div><div class="v" id="wOrders"></div><div class="s" id="wOrdersD"></div></div>
+        </div>
+        <div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+          <div class="tile big"><div class="k">Tu utilidad al mes</div><div class="v" id="wNet"></div><div class="s" id="wNetD"></div></div>
+          <div class="tile big"><div class="k">Nos pagarías al mes</div><div class="v" id="wPay"></div><div class="s" id="wPayD"></div></div>
+        </div>
+        <div class="tiles" style="grid-template-columns:1fr">
+          <div class="tile solidgreen big"><div class="k">Ganarías extra cada mes</div><div class="v" id="wDelta"></div></div>
+        </div>
+
+        <div class="bar">
+          <div class="seg-cost" id="segCost"></div>
+          <div class="seg-ads" id="segAds"></div>
+          <div class="seg-agency" id="segAgency"></div>
+          <div class="seg-client" id="segClient"></div>
+        </div>
+        <div class="legend">
+          <span><span class="dot d-cost"></span>Producto y costos</span>
+          <span><span class="dot d-ads"></span>Ads</span>
+          <span><span class="dot d-agency"></span>Agencia</span>
+          <span><span class="dot d-client"></span>Tu utilidad</span>
+        </div>
+
+        <div class="footnote" id="contrast"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card proj">
+    <h2>Otras proyecciones de venta</h2>
+    <table class="proj">
+      <thead><tr><th>Si vendes</th><th>Inviertes en ads</th><th>Nos pagas</th><th>Tu utilidad</th><th>Ganas extra</th></tr></thead>
+      <tbody id="projBody"></tbody>
+    </table>
+    <div class="footnote" id="projNote"></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString('en-US');
+const fmtS=n=>(n<0?'−':'')+fmt(n);
+const val=id=>+($(id).value.replace(/[^0-9.]/g,''))||0;
+const NUM_IDS=['rev','ads','gp','aov','fee','newFee','uOrders','uCogs','uShip','fixed'];
+
+const DEFAULT_CLIENTS={
+  koneli:{name:'Koneli', mode:'tw', rev:1539047, ads:473284, gp:507772, aov:1860, fee:40000, feeIncluded:true,
+    uOrders:827, uCogs:459, uShip:100, uGw:3.6, fixed:0, useNet:false,
+    newFee:40000, pct:8, adsPct:null, what:2000000}
+};
+let clients=JSON.parse(localStorage.getItem('proyClientsInc')||'null')||DEFAULT_CLIENTS;
+let current=location.hash.replace('#','')||localStorage.getItem('proyCurrentInc')||Object.keys(clients)[0];
+if(!clients[current]) current=Object.keys(clients)[0];
+let mode='tw', feeIncluded=true, useNet=false, adsPctTouched=false, loading=false;
+
+function save(){
+  localStorage.setItem('proyClientsInc',JSON.stringify(clients));
+  localStorage.setItem('proyCurrentInc',current);
+}
+function snapshot(){
+  const c=clients[current];
+  c.mode=mode;
+  c.rev=val('rev'); c.ads=val('ads'); c.gp=val('gp'); c.aov=val('aov');
+  c.fee=val('fee'); c.newFee=val('newFee'); c.pct=+$('pct').value;
+  c.uOrders=val('uOrders'); c.uCogs=val('uCogs'); c.uShip=val('uShip'); c.uGw=+$('uGw').value||0;
+  c.fixed=val('fixed'); c.useNet=useNet;
+  c.feeIncluded=feeIncluded;
+  c.adsPct=adsPctTouched? +$('adsPctIn').value : null;
+  c.what=+$('what').value;
+  save();
+}
+function setNum(id,n){ $(id).value=Math.round(n||0).toLocaleString('en-US'); }
+function load(){
+  loading=true;
+  const c=clients[current];
+  mode=c.mode||'tw';
+  setNum('rev',c.rev); setNum('ads',c.ads); setNum('gp',c.gp); setNum('aov',c.aov);
+  setNum('fee',c.fee); setNum('newFee',c.newFee);
+  setNum('uOrders',c.uOrders); setNum('uCogs',c.uCogs); setNum('uShip',c.uShip); setNum('fixed',c.fixed);
+  $('uGw').value=c.uGw!=null?c.uGw:3.6;
+  $('pct').value=c.pct;
+  feeIncluded=c.feeIncluded!==false;
+  useNet=!!c.useNet;
+  [...$('tgFee').children].forEach(x=>x.classList.toggle('on',x.dataset.v===(feeIncluded?'yes':'no')));
+  [...$('tgNet').children].forEach(x=>x.classList.toggle('on',x.dataset.v===(useNet?'net':'gross')));
+  [...$('modeTabs').children].forEach(x=>x.classList.toggle('on',x.dataset.m===mode));
+  adsPctTouched=c.adsPct!=null;
+  if(adsPctTouched) $('adsPctIn').value=c.adsPct;
+  const f=fin();
+  $('what').min=f.rev; $('what').max=f.rev*4; $('what').value=Math.max(c.what||f.rev*1.3,f.rev);
+  $('clientTitle').textContent=c.name;
+  document.title='Proyección de crecimiento — '+c.name;
+  loading=false;
+  applyMode(); buildMenu(); calc();
+}
+
+function fin(){
+  const aov=val('aov'), ads=val('ads');
+  if(mode==='unit'){
+    const orders=val('uOrders'), cogs=val('uCogs'), ship=val('uShip'), gw=(+$('uGw').value||0)/100;
+    const rev=orders*aov;
+    const gp=rev - orders*(cogs+ship) - rev*gw - ads;
+    return {rev,ads,gp,aov,orders,unit:true};
+  }
+  const rev=val('rev'), gp=val('gp');
+  return {rev,ads,gp,aov,orders:aov?rev/aov:0,unit:false};
+}
+
+function applyMode(){
+  $('modeTw').style.display=mode==='tw'?'block':'none';
+  $('modeUnit').style.display=mode==='unit'?'block':'none';
+  $('feeTgWrap').style.display=mode==='tw'?'block':'none';
+}
+
+$('modeTabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  mode=b.dataset.m;
+  [...$('modeTabs').children].forEach(x=>x.classList.toggle('on',x===b));
+  applyMode(); snapshot(); calc();
+});
+
+function buildMenu(){
+  const m=$('cMenu'); m.innerHTML='';
+  Object.keys(clients).forEach(k=>{
+    const b=document.createElement('button');
+    b.textContent=clients[k].name;
+    if(k===current) b.className='cur';
+    b.onclick=()=>{ current=k; location.hash=k; save(); load(); m.classList.remove('open'); };
+    m.appendChild(b);
+  });
+  const sep=document.createElement('div'); sep.className='sepa'; m.appendChild(sep);
+  const add=document.createElement('button'); add.className='small'; add.textContent='+ Nuevo cliente';
+  add.onclick=()=>{
+    const name=prompt('Nombre del cliente:'); if(!name) return;
+    const key=name.toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(!key||clients[key]){alert('Nombre inválido o ya existe');return;}
+    clients[key]={...clients[current], name, adsPct:null};
+    current=key; location.hash=key; save(); load(); m.classList.remove('open');
+  };
+  m.appendChild(add);
+  if(Object.keys(clients).length>1){
+    const del=document.createElement('button'); del.className='small'; del.textContent='– Eliminar "'+clients[current].name+'"';
+    del.onclick=()=>{
+      if(!confirm('¿Eliminar a '+clients[current].name+'?')) return;
+      delete clients[current];
+      current=Object.keys(clients)[0]; location.hash=current; save(); load(); m.classList.remove('open');
+    };
+    m.appendChild(del);
+  }
+}
+$('cBtn').onclick=e=>{ e.stopPropagation(); $('cMenu').classList.toggle('open'); };
+document.addEventListener('click',()=>$('cMenu').classList.remove('open'));
+
+function addCommas(el){
+  const raw=el.value.replace(/[^0-9]/g,'');
+  const pos=el.selectionStart, before=el.value.length;
+  el.value=raw? (+raw).toLocaleString('en-US') : '';
+  const diff=el.value.length-before;
+  el.setSelectionRange(Math.max(0,pos+diff),Math.max(0,pos+diff));
+}
+
+$('tgFee').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  feeIncluded=b.dataset.v==='yes';
+  [...$('tgFee').children].forEach(x=>x.classList.toggle('on',x===b));
+  snapshot(); calc();
+});
+$('tgNet').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  useNet=b.dataset.v==='net';
+  [...$('tgNet').children].forEach(x=>x.classList.toggle('on',x===b));
+  snapshot(); calc();
+});
+
+const PRESETS=[1.25,1.5,2,2.5,3];
+const pc=$('presets');
+PRESETS.forEach(p=>{
+  const b=document.createElement('button');
+  b.textContent='×'+p;
+  b.onclick=()=>{ $('what').value=fin().rev*p; snapshot(); calc(); };
+  pc.appendChild(b);
+});
+
+function calc(){
+  if(loading) return;
+  const f=fin();
+  const rev=f.rev, ads=f.ads, gp=f.gp, aov=f.aov, orders=f.orders;
+  const pct=+$('pct').value/100;
+  const fee=val('fee'), newFee=val('newFee'), fixed=val('fixed');
+  $('pctOut').textContent=(pct*100%1?(pct*100).toFixed(1):(pct*100))+'%';
+
+  $('netTgWrap').style.display=fixed>0?'block':'none';
+  const overNet=useNet&&fixed>0;
+
+  if(f.unit){
+    const cpa=orders? ads/orders : 0;
+    let d='Con estos datos: facturación <b>'+fmt(rev)+'</b> · CPA <b>'+fmt(cpa)+'</b> · utilidad bruta <b>'+fmtS(gp)+'</b> (margen <b>'+(rev?((gp/rev)*100).toFixed(1):0)+'%</b>)';
+    const twRev=val('rev'), twGp=val('gp');
+    if(twRev>0&&twGp>0){
+      const twNet=(feeIncluded? twGp : twGp-fee);
+      const uNet=gp-fee;
+      const diff=uNet-twNet;
+      if(Math.abs(diff)<Math.max(twNet*0.02,5000)){
+        d+='<br>✅ Cuadra con Triple Whale ('+fmtS(twNet)+' de utilidad hoy).';
+      } else {
+        const perOrder=orders? Math.abs(diff)/orders : 0;
+        d+='<br>⚠️ Triple Whale reporta <b>'+fmtS(twNet)+'</b> de utilidad hoy — aquí sale '+fmtS(uNet)+'. Diferencia de <b>'+fmtS(diff)+'</b> ≈ <b>'+fmt(perOrder)+' por pedido</b>: ajusta COGS, envío o pasarela hasta cuadrar.';
+      }
+    }
+    $('derived').innerHTML=d;
+  }
+
+  $('what').min=rev; $('what').max=rev*4||100;
+  if(+$('what').value<rev) $('what').value=rev;
+
+  const adsPctBase=rev? ads/rev : 0;
+  if(!adsPctTouched) $('adsPctIn').value=(adsPctBase*100).toFixed(1);
+  const adsPctProj=+$('adsPctIn').value/100;
+  const adsPctTxt=(adsPctProj*100).toFixed(1)+'%';
+  $('adsPctOut').textContent=adsPctTxt;
+
+  const incl=f.unit? false : feeIncluded;
+  const varProfit=incl? gp+fee : gp;
+  const netToday=(incl? gp : gp-fee)-(overNet?fixed:0);
+  const preAdsMargin=rev? (varProfit+ads)/rev : 0;
+
+  $('hMargin').textContent=(rev?((netToday/rev)*100).toFixed(1):0)+'%';
+  $('hNetLbl2').textContent=overNet?'Margen neto hoy':'Margen real hoy';
+  $('hRoas').textContent=ads?(rev/ads).toFixed(2):'–';
+  $('hAdsPct').textContent=(adsPctBase*100).toFixed(1)+'%';
+  $('hAdsMonto').textContent=fmt(ads)+' al mes';
+  $('hOrders').textContent=Math.round(orders).toLocaleString('en-US');
+  $('hTicket').textContent=fmt(aov);
+  $('hNetLbl').textContent=overNet?'Tu utilidad neta hoy':'Tu utilidad hoy';
+  $('hNet').textContent=fmtS(netToday);
+  $('hRevS').textContent='vendiendo '+fmt(rev);
+  $('hFee').textContent=fmt(fee);
+  $('hFeeOrder').textContent=orders?fmt(fee/orders):'–';
+  $('hFeePct').textContent=(orders&&aov)?(((fee/orders)/aov)*100).toFixed(1)+'%':'–';
+
+  function scen(r){
+    const c=newFee+Math.max(r-rev,0)*pct;
+    const o=aov? r/aov : 0;
+    const net=preAdsMargin*r - r*adsPctProj - c - (overNet?fixed:0);
+    return {r,a:r*adsPctProj,c,o,net,delta:net-netToday};
+  }
+  const what=+$('what').value;
+  if(document.activeElement!==$('whatBox')) $('whatBox').value=Math.round(what).toLocaleString('en-US');
+  const w=scen(what);
+
+  $('wPay').textContent=fmt(w.c);
+  $('wPayD').textContent='fee '+fmt(newFee)+' + '+(pct*100)+'% del incremento';
+  $('wNet').textContent=fmtS(w.net);
+  $('wNetD').textContent='hoy: '+fmtS(netToday)+' · margen '+(what?((w.net/what)*100).toFixed(1):0)+'%';
+  $('wAds').textContent=fmt(w.a);
+  $('wAdsPctL').textContent=adsPctTxt;
+  $('wAdsD').textContent='hoy inviertes '+fmt(ads)+' ('+(adsPctBase*100).toFixed(1)+'%)';
+  $('wOrders').textContent=Math.round(w.o).toLocaleString('en-US');
+  $('wOrdersD').textContent='hoy son '+Math.round(orders).toLocaleString('en-US');
+  $('wDelta').textContent=(w.delta>=0?'+':'−')+fmt(w.delta);
+
+  const cost=Math.max(w.r-w.a-w.c-Math.max(w.net,0),0);
+  const total=w.r||1;
+  $('segCost').style.width=(cost/total*100)+'%';
+  $('segAds').style.width=(w.a/total*100)+'%';
+  $('segAgency').style.width=(w.c/total*100)+'%';
+  $('segClient').style.width=(Math.max(w.net,0)/total*100)+'%';
+
+  const pctMore=netToday?((w.delta/netToday)*100).toFixed(0):'–';
+  $('contrast').innerHTML='Si te quedas como hoy: <b>'+fmtS(netToday)+'</b> al mes. Con la propuesta, aun pagándonos <b style="color:var(--agency)">'+fmt(w.c)+'</b>, te quedan <b style="color:var(--client)">'+fmtS(w.net)+'</b> — es decir <b style="color:var(--client)">'+(w.delta>=0?'+':'−')+fmt(w.delta)+' ('+pctMore+'% más)</b> cada mes.';
+
+  $('projNote').textContent='Las proyecciones usan '+adsPctTxt+' de la venta como inversión en ads y mantienen tu mismo margen sobre producto'+(overNet?'; los gastos fijos se mantienen constantes':'')+'. "Ganas extra" compara contra tu utilidad de hoy ('+fmtS(netToday)+'). El '+(pct*100)+'% aplica solo sobre lo que crezca la venta vs hoy. La fila azul es tu meta.';
+
+  const body=$('projBody'); body.innerHTML='';
+  const rows=[1.25,1.5,2,2.5,3].map(mm=>scen(rev*mm));
+  if(!rows.some(x=>Math.abs(x.r-what)<1)){rows.push(w); rows.sort((a,b)=>a.r-b.r);}
+  rows.forEach(s=>{
+    const tr=document.createElement('tr');
+    const isBase=Math.abs(s.r-rev)<1;
+    if(Math.abs(s.r-what)<1&&!isBase) tr.className='hlrow';
+    if(isBase) tr.className='baserow';
+    tr.innerHTML='<td>'+fmt(s.r)+(isBase?' (hoy)':'')+'</td><td>'+fmt(s.a)+'</td><td>'+fmt(s.c)+'</td><td>'+fmtS(s.net)+'</td><td>'+((s.delta>=0?'+':'−')+fmt(s.delta))+'</td>';
+    body.appendChild(tr);
+  });
+}
+
+NUM_IDS.forEach(id=>$(id).addEventListener('input',e=>{addCommas(e.target);snapshot();calc();}));
+$('uGw').addEventListener('input',()=>{snapshot();calc();});
+$('pct').addEventListener('input',()=>{snapshot();calc();});
+$('what').addEventListener('input',()=>{snapshot();calc();});
+$('whatBox').addEventListener('input',e=>{
+  addCommas(e.target);
+  const n=val('whatBox');
+  if(n>0){ $('what').value=Math.max(n,+$('what').min); snapshot(); calc(); }
+});
+$('whatBox').addEventListener('blur',()=>{ snapshot(); calc(); });
+$('adsPctIn').addEventListener('input',()=>{adsPctTouched=true;snapshot();calc();});
+window.addEventListener('hashchange',()=>{
+  const k=location.hash.replace('#','');
+  if(clients[k]&&k!==current){current=k;save();load();}
+});
+load();
+</script>
+</body>
+</html>
