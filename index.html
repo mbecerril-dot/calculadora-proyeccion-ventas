@@ -2,156 +2,333 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Calculadora de proyección de ventas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyección de crecimiento</title>
 <style>
-:root{
-  --bg:#faf9f5; --surface:#f0eee6; --text:#1a1a17; --muted:#6b6a64; --hint:#9b9a92;
-  --border:rgba(0,0,0,0.15); --border2:rgba(0,0,0,0.3);
-  --info-bg:#e6f1fb; --info-text:#0c447c;
-  --success-bg:#eaf3de; --success-text:#27500a;
-  --radius:8px;
-}
-@media (prefers-color-scheme: dark){
   :root{
-    --bg:#1f1e1b; --surface:#2b2a26; --text:#f0efe9; --muted:#a8a79f; --hint:#7c7b73;
-    --border:rgba(255,255,255,0.15); --border2:rgba(255,255,255,0.3);
-    --info-bg:#0c447c; --info-text:#b5d4f4;
-    --success-bg:#27500a; --success-text:#c0dd97;
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232d; --border:#2a3340;
+    --text:#e6edf3; --muted:#8b98a5; --accent:#3b82f6;
+    --ads:#ef4444; --cost:#64748b; --agency:#f59e0b; --client:#22c55e; --purple:#a78bfa;
   }
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.6}
-.wrap{max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem}
-h1{font-size:22px;font-weight:500;margin:0 0 1.5rem}
-.sec{margin:0 0 1.5rem}
-.lbl{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
-.st{font-size:14px;font-weight:500;color:var(--text)}
-.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
-.card{background:var(--surface);border-radius:var(--radius);padding:1rem}
-.card .v{font-size:22px;font-weight:500}
-.card .l{font-size:13px;color:var(--muted);margin-bottom:4px}
-input[type=text]{height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:15px}
-input[type=text]:focus{outline:none;border-color:var(--info-text);box-shadow:0 0 0 2px var(--info-bg)}
-input[type=range]{accent-color:var(--info-text)}
-button{padding:8px 14px;font-size:13px;cursor:pointer;background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text)}
-.tg{display:flex;gap:0;border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:fit-content}
-.tg button{border:none;border-radius:0}
-.tg button.on{background:var(--info-bg);color:var(--info-text);font-weight:500}
-table.pr{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-table.pr th{font-weight:500;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:0.5px solid var(--border2)}
-table.pr td{text-align:right;padding:6px 8px;border-bottom:0.5px solid var(--border)}
-table.pr th:first-child,table.pr td:first-child{text-align:left}
-.hl{background:var(--info-bg)}
-.hl td{color:var(--info-text);font-weight:500}
-.note{font-size:12px;color:var(--hint);margin:6px 0 0}
-.green{background:var(--success-bg)}
-.green .l,.green .v{color:var(--success-text)}
-.divider{border-top:0.5px solid var(--border2);padding-top:1.5rem}
-.big{font-size:16px;font-weight:500}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+    padding:32px 20px; min-height:100vh;
+  }
+  .wrap{max-width:1080px; margin:0 auto;}
+  header{margin-bottom:28px; display:flex; justify-content:space-between; align-items:flex-start;}
+  h1{font-size:24px; font-weight:700; letter-spacing:-0.02em;}
+  .sub{color:var(--muted); font-size:14px; margin-top:4px;}
+  .grid{display:grid; grid-template-columns:380px 1fr; gap:20px; align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px;}
+  .card h2{font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:18px; font-weight:600;}
+  .ctrl{margin-bottom:20px;}
+  .ctrl:last-child{margin-bottom:0;}
+  .ctrl-label{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .ctrl-label .name{font-size:14px; font-weight:500;}
+  .ctrl-label .val{font-size:15px; font-weight:700; color:var(--accent);}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:6px; border-radius:3px;
+    background:var(--panel2); outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
+    background:var(--accent); border:3px solid var(--bg); cursor:pointer;
+    box-shadow:0 0 0 1px var(--accent);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%; background:var(--accent);
+    border:3px solid var(--bg); cursor:pointer;
+  }
+  .field{display:flex; align-items:center; gap:8px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:8px 12px;}
+  .field span{color:var(--muted); font-size:14px;}
+  .field input{
+    background:transparent; border:none; color:var(--text); font-size:15px; font-weight:600;
+    width:100%; outline:none; font-family:inherit;
+  }
+  .hint{font-size:12px; color:var(--muted); margin-top:6px;}
+  .tg{display:flex; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content;}
+  .tg button{border:none; background:transparent; color:var(--muted); padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:inherit;}
+  .tg button.on{background:var(--panel2); color:var(--accent); font-weight:600;}
+
+  .results-top{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:18px;}
+  .metric{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:18px;}
+  .metric .k{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;}
+  .metric .v{font-size:26px; font-weight:800; letter-spacing:-0.02em;}
+  .metric .pct{font-size:13px; color:var(--muted); margin-top:2px;}
+  .metric.agency{border-color:rgba(245,158,11,.4);}
+  .metric.agency .v{color:var(--agency);}
+  .metric.client{border-color:rgba(34,197,94,.4);}
+  .metric.client .v{color:var(--client);}
+
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  td{padding:10px 4px; border-bottom:1px solid var(--border);}
+  td:last-child{text-align:right; font-weight:700; font-variant-numeric:tabular-nums;}
+  tr:last-child td{border-bottom:none;}
+  .row-label{color:var(--muted);}
+  .dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; vertical-align:middle;}
+  .d-ads{background:var(--ads);} .d-cost{background:var(--cost);} .d-agency{background:var(--agency);}
+  .d-client{background:var(--client);} .d-blue{background:var(--accent);} .d-purple{background:var(--purple);}
+
+  .bar{display:flex; height:26px; border-radius:8px; overflow:hidden; margin:16px 0 8px;}
+  .bar > div{height:100%; transition:width .15s ease;}
+  .seg-ads{background:var(--ads);} .seg-cost{background:var(--cost);}
+  .seg-agency{background:var(--agency);} .seg-client{background:var(--client);}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted);}
+  .legend span{display:flex; align-items:center;}
+
+  .presets{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .presets button{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    border-radius:7px; padding:6px 11px; font-size:12.5px; cursor:pointer; font-family:inherit;
+  }
+  .presets button:hover{border-color:var(--accent); color:var(--accent);}
+  .footnote{font-size:12.5px; color:var(--muted); margin-top:18px; line-height:1.6;}
+  .neg{color:var(--ads)!important;}
+  .proj{margin-top:20px;}
+  th{font-size:12px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); text-align:right; padding:8px 4px; border-bottom:1px solid var(--border); font-weight:600;}
+  th:first-child{text-align:left;}
+  .proj td{text-align:right; font-variant-numeric:tabular-nums; font-weight:500;}
+  .proj td:first-child{text-align:left;}
+  .hlrow{background:rgba(59,130,246,.12);}
+  .hlrow td{color:var(--accent); font-weight:700;}
+  .baserow td{color:var(--muted);}
+
+  /* selector de cliente discreto */
+  #cBtn{
+    width:14px; height:14px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--border); opacity:.35; margin-top:8px; flex-shrink:0;
+  }
+  #cBtn:hover{opacity:.9; background:var(--accent);}
+  #cMenu{
+    position:absolute; right:0; top:24px; background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:6px; min-width:190px; display:none; z-index:10;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  #cMenu.open{display:block;}
+  #cMenu button{
+    display:block; width:100%; text-align:left; background:transparent; border:none; color:var(--text);
+    padding:8px 10px; border-radius:7px; cursor:pointer; font-size:13.5px; font-family:inherit;
+  }
+  #cMenu button:hover{background:var(--panel2);}
+  #cMenu button.cur{color:var(--accent); font-weight:600;}
+  #cMenu .sepa{border-top:1px solid var(--border); margin:6px 0;}
+  #cMenu .small{font-size:12.5px; color:var(--muted);}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>Calculadora de proyección de ventas</h1>
-
-<div class="sec">
-  <span class="lbl st">Datos actuales del cliente (mensual)</span>
-  <div class="row" style="margin-top:8px">
-    <div><label class="lbl">Facturación (MXN)</label><input type="text" inputmode="numeric" id="rev" value="1,539,047" style="width:100%"></div>
-    <div><label class="lbl">Gasto en ads (MXN)</label><input type="text" inputmode="numeric" id="ads" value="473,284" style="width:100%"></div>
-    <div><label class="lbl">Utilidad bruta (MXN)</label><input type="text" inputmode="numeric" id="gp" value="507,772" style="width:100%"></div>
-    <div><label class="lbl">Ticket promedio (MXN)</label><input type="text" inputmode="numeric" id="aov" value="1,860" style="width:100%"></div>
-  </div>
-  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:end;margin-top:12px">
+  <header>
     <div>
-      <label class="lbl">¿Esa utilidad ya tiene descontado el fee fijo actual?</label>
-      <div class="tg" id="tgFee">
-        <button data-v="yes" class="on">Sí, ya lo incluye</button>
-        <button data-v="no">No, falta descontarlo</button>
+      <h1>Proyección de crecimiento — <span id="clientTitle">Cliente</span></h1>
+      <div class="sub">Mueve la meta de venta y mira cuánto inviertes, cuánto nos pagas y cuánto te queda.</div>
+    </div>
+    <div style="position:relative">
+      <button id="cBtn" title=""></button>
+      <div id="cMenu"></div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Datos actuales (mensual)</h2>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Facturación</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="rev" value="1,539,047"></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Gasto en ads</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="ads" value="473,284"></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Utilidad bruta</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="gp" value="507,772"></div>
+        <div class="hint">Con envíos incluidos.</div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Ticket promedio</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="aov" value="1,860"></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Fee fijo actual</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="fee" value="40,000"></div>
+        <div class="ctrl-label" style="margin:10px 0 6px"><span class="name" style="font-size:12.5px;color:var(--muted)">¿La utilidad ya lo tiene descontado?</span></div>
+        <div class="tg" id="tgFee">
+          <button data-v="yes" class="on">Sí, ya lo incluye</button>
+          <button data-v="no">No, falta</button>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:22px 0;">
+      <h2>Nuevo cobro propuesto</h2>
+
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">Nueva iguala mensual</span></div>
+        <div class="field"><span>$</span><input type="text" inputmode="numeric" id="newFee" value="40,000"></div>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-label"><span class="name">% sobre venta</span><span class="val" id="pctOut">3%</span></div>
+        <input type="range" id="pct" min="0" max="20" step="0.5" value="3">
+        <div class="hint">Cobro nuevo: se suma a la iguala en todos los escenarios.</div>
       </div>
     </div>
-    <div>
-      <label class="lbl">Fee fijo actual</label>
-      <input type="text" inputmode="numeric" id="fee" value="40,000" style="width:130px">
-    </div>
-  </div>
-</div>
 
-<div class="sec">
-  <span class="lbl st">Escenario actual</span>
-  <div class="row" style="margin-top:8px">
-    <div class="card"><div class="l">Margen real hoy</div><div class="v" id="oMargin">–</div></div>
-    <div class="card"><div class="l">ROAS</div><div class="v" id="oRoas">–</div></div>
-    <div class="card"><div class="l">% gasto en ads</div><div class="v" id="oAdsPct">–</div></div>
-    <div class="card"><div class="l">Pedidos / mes</div><div class="v" id="oOrders">–</div></div>
-    <div class="card"><div class="l">Utilidad cliente hoy</div><div class="v" id="oNetToday">–</div></div>
-  </div>
-  <div class="row" style="margin-top:12px">
-    <div class="card"><div class="l">Cobro actual / mes (fee)</div><div class="v" id="oChargeNow">–</div></div>
-    <div class="card"><div class="l">Cobro actual por pedido</div><div class="v" id="oPerOrderNow">–</div></div>
-    <div class="card"><div class="l">% del ticket promedio</div><div class="v" id="oPctTicketNow">–</div></div>
-  </div>
-</div>
-
-<div class="sec">
-  <span class="lbl st">Nuevo cobro propuesto</span>
-  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin-top:8px">
     <div>
-      <label class="lbl">Nueva iguala mensual</label>
-      <input type="text" inputmode="numeric" id="newFee" value="40,000" style="width:130px">
-    </div>
-    <div style="flex:1;min-width:240px">
-      <label class="lbl">% sobre venta que se cobraría</label>
-      <div style="display:flex;align-items:center;gap:12px">
-        <input type="range" id="pct" min="0" max="20" step="0.5" value="3" style="flex:1">
-        <span id="pctOut" style="font-size:14px;font-weight:500;min-width:42px">3%</span>
+      <div class="card" style="margin-bottom:18px">
+        <h2>Hoy</h2>
+        <table>
+          <tr><td class="row-label"><span class="dot d-blue"></span>Facturación</td><td id="hRev"></td></tr>
+          <tr><td class="row-label"><span class="dot d-ads"></span>Gasto en ads <small id="hAdsPct" style="color:var(--muted)"></small></td><td id="hAds" class="neg"></td></tr>
+          <tr><td class="row-label"><span class="dot d-purple"></span>ROAS · Pedidos · Ticket</td><td id="hMix"></td></tr>
+          <tr><td class="row-label"><span class="dot d-agency"></span>Nos pagas hoy <small id="hFeeOrder" style="color:var(--muted)"></small></td><td id="hFee"></td></tr>
+          <tr><td class="row-label"><span class="dot d-client"></span>Tu utilidad hoy <small id="hMargin" style="color:var(--muted)"></small></td><td id="hNet"></td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>¿Qué pasaría si vendemos…?</h2>
+
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Meta de venta mensual</span><span class="val" id="whatLabel">$2,000,000</span></div>
+          <input type="range" id="what" min="1539047" max="6156188" step="any" value="2000000">
+          <div class="presets" id="presets"></div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">% de gasto en ads</span><span class="val" id="adsPctOut">30.8%</span></div>
+          <input type="range" id="adsPctIn" min="5" max="60" step="any" value="30.8">
+          <div class="hint">Arranca en tu % actual; muévelo para simular más o menos inversión.</div>
+        </div>
+
+        <div class="results-top">
+          <div class="metric agency">
+            <div class="k">Nos pagarías</div>
+            <div class="v" id="wPay">$0</div>
+            <div class="pct" id="wPayD"></div>
+          </div>
+          <div class="metric client">
+            <div class="k">Tu utilidad</div>
+            <div class="v" id="wNet">$0</div>
+            <div class="pct" id="wNetD"></div>
+          </div>
+        </div>
+
+        <table>
+          <tr><td class="row-label"><span class="dot d-blue"></span>Venta proyectada</td><td id="wRev"></td></tr>
+          <tr><td class="row-label"><span class="dot d-ads"></span>Inversión en ads <small id="wAdsPctL" style="color:var(--muted)"></small></td><td id="wAds" class="neg"></td></tr>
+          <tr><td class="row-label"><span class="dot d-purple"></span>Pedidos al mes <small id="wOrdersD" style="color:var(--muted)"></small></td><td id="wOrders"></td></tr>
+          <tr><td class="row-label"><span class="dot d-client"></span>Ganarías extra vs hoy</td><td id="wDelta" style="color:var(--client)"></td></tr>
+        </table>
+
+        <div class="bar">
+          <div class="seg-cost" id="segCost"></div>
+          <div class="seg-ads" id="segAds"></div>
+          <div class="seg-agency" id="segAgency"></div>
+          <div class="seg-client" id="segClient"></div>
+        </div>
+        <div class="legend">
+          <span><span class="dot d-cost"></span>Producto y costos</span>
+          <span><span class="dot d-ads"></span>Ads</span>
+          <span><span class="dot d-agency"></span>Agencia</span>
+          <span><span class="dot d-client"></span>Tu utilidad</span>
+        </div>
+
+        <div class="footnote" id="contrast"></div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="sec divider">
-  <span class="lbl big" style="color:var(--text)">¿Qué pasaría si vendemos…?</span>
-  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px;margin:10px 0 14px">
-    <div style="display:flex;align-items:center;gap:12px">
-      <input type="text" inputmode="numeric" id="what" value="2,000,000" style="width:180px;font-size:16px">
-      <span class="lbl" style="margin:0">MXN al mes</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:260px">
-      <label class="lbl" style="margin:0;white-space:nowrap">% de gasto en ads</label>
-      <input type="range" id="adsPctIn" min="5" max="60" step="0.5" value="30.5" style="flex:1">
-      <span id="adsPctOut" style="font-size:14px;font-weight:500;min-width:48px">–</span>
-    </div>
+  <div class="card proj">
+    <h2>Otras proyecciones de venta</h2>
+    <table class="proj">
+      <thead><tr><th>Si vendes</th><th>Inviertes en ads</th><th>Nos pagas</th><th>Tu utilidad</th><th>Ganas extra</th></tr></thead>
+      <tbody id="projBody"></tbody>
+    </table>
+    <div class="footnote" id="projNote"></div>
   </div>
-  <div class="row">
-    <div class="card"><div class="l">Invertirías en ads (<span id="wAdsPctL">–</span> de la venta)</div><div class="v" id="wAds">–</div><div class="l" id="wAdsD" style="margin:4px 0 0"></div></div>
-    <div class="card"><div class="l">Pedidos al mes</div><div class="v" id="wOrders">–</div><div class="l" id="wOrdersD" style="margin:4px 0 0"></div></div>
-    <div class="card"><div class="l">Nos pagarías al mes</div><div class="v" id="wPay">–</div><div class="l" id="wPayD" style="margin:4px 0 0"></div></div>
-  </div>
-  <div class="row" style="margin-top:12px">
-    <div class="card"><div class="l">Si te quedas como hoy</div><div class="v" id="cStay">–</div><div class="l" id="cStayD" style="margin:4px 0 0"></div></div>
-    <div class="card green"><div class="l">Tu utilidad con la propuesta</div><div class="v" id="wNet">–</div><div class="l" id="wNetD" style="margin:4px 0 0"></div></div>
-    <div class="card green"><div class="l">Ganarías extra cada mes</div><div class="v" id="wDelta">–</div><div class="l" id="wDeltaD" style="margin:4px 0 0"></div></div>
-  </div>
-  <p style="font-size:13px;color:var(--muted);margin:10px 0 0" id="contrast"></p>
-</div>
-
-<div class="sec">
-  <span class="lbl st">Otras proyecciones de venta</span>
-  <table class="pr" style="margin-top:8px">
-    <thead><tr><th>Si vendes</th><th>Inviertes en ads</th><th>Nos pagas</th><th>Tu utilidad</th><th>Ganas extra</th></tr></thead>
-    <tbody id="projBody"></tbody>
-  </table>
-  <p class="note" id="projNote"></p>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString('es-MX');
+const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString('en-US');
 const fmtS=n=>(n<0?'−':'')+fmt(n);
 const val=id=>+($(id).value.replace(/[^0-9.]/g,''))||0;
-const NUM_IDS=['rev','ads','gp','aov','fee','newFee','what'];
+const NUM_IDS=['rev','ads','gp','aov','fee','newFee'];
+
+const DEFAULT_CLIENTS={
+  koneli:{name:'Koneli', rev:1539047, ads:473284, gp:507772, aov:1860, fee:40000, feeIncluded:true, newFee:40000, pct:3, adsPct:null, what:2000000}
+};
+let clients=JSON.parse(localStorage.getItem('proyClients')||'null')||DEFAULT_CLIENTS;
+let current=location.hash.replace('#','')||localStorage.getItem('proyCurrent')||Object.keys(clients)[0];
+if(!clients[current]) current=Object.keys(clients)[0];
+let feeIncluded=true, adsPctTouched=false, loading=false;
+
+function save(){
+  localStorage.setItem('proyClients',JSON.stringify(clients));
+  localStorage.setItem('proyCurrent',current);
+}
+function snapshot(){
+  const c=clients[current];
+  c.rev=val('rev'); c.ads=val('ads'); c.gp=val('gp'); c.aov=val('aov');
+  c.fee=val('fee'); c.newFee=val('newFee'); c.pct=+$('pct').value;
+  c.feeIncluded=feeIncluded;
+  c.adsPct=adsPctTouched? +$('adsPctIn').value : null;
+  c.what=+$('what').value;
+  save();
+}
+function setNum(id,n){ $(id).value=Math.round(n).toLocaleString('en-US'); }
+function load(){
+  loading=true;
+  const c=clients[current];
+  setNum('rev',c.rev); setNum('ads',c.ads); setNum('gp',c.gp); setNum('aov',c.aov);
+  setNum('fee',c.fee); setNum('newFee',c.newFee);
+  $('pct').value=c.pct;
+  feeIncluded=c.feeIncluded!==false;
+  [...$('tgFee').children].forEach(x=>x.classList.toggle('on',x.dataset.v===(feeIncluded?'yes':'no')));
+  adsPctTouched=c.adsPct!=null;
+  if(adsPctTouched) $('adsPctIn').value=c.adsPct;
+  $('what').min=c.rev; $('what').max=c.rev*4; $('what').value=Math.max(c.what||c.rev*1.3,c.rev);
+  $('clientTitle').textContent=c.name;
+  document.title='Proyección de crecimiento — '+c.name;
+  loading=false;
+  buildMenu(); calc();
+}
+
+function buildMenu(){
+  const m=$('cMenu'); m.innerHTML='';
+  Object.keys(clients).forEach(k=>{
+    const b=document.createElement('button');
+    b.textContent=clients[k].name;
+    if(k===current) b.className='cur';
+    b.onclick=()=>{ current=k; location.hash=k; save(); load(); m.classList.remove('open'); };
+    m.appendChild(b);
+  });
+  const sep=document.createElement('div'); sep.className='sepa'; m.appendChild(sep);
+  const add=document.createElement('button'); add.className='small'; add.textContent='+ Nuevo cliente';
+  add.onclick=()=>{
+    const name=prompt('Nombre del cliente:'); if(!name) return;
+    const key=name.toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(!key||clients[key]){alert('Nombre inválido o ya existe');return;}
+    clients[key]={...clients[current], name, adsPct:null};
+    current=key; location.hash=key; save(); load(); m.classList.remove('open');
+  };
+  m.appendChild(add);
+  if(Object.keys(clients).length>1){
+    const del=document.createElement('button'); del.className='small'; del.textContent='– Eliminar "'+clients[current].name+'"';
+    del.onclick=()=>{
+      if(!confirm('¿Eliminar a '+clients[current].name+'?')) return;
+      delete clients[current];
+      current=Object.keys(clients)[0]; location.hash=current; save(); load(); m.classList.remove('open');
+    };
+    m.appendChild(del);
+  }
+}
+$('cBtn').onclick=e=>{ e.stopPropagation(); $('cMenu').classList.toggle('open'); };
+document.addEventListener('click',()=>$('cMenu').classList.remove('open'));
+
 function addCommas(el){
   const raw=el.value.replace(/[^0-9]/g,'');
   const pos=el.selectionStart, before=el.value.length;
@@ -159,79 +336,108 @@ function addCommas(el){
   const diff=el.value.length-before;
   el.setSelectionRange(Math.max(0,pos+diff),Math.max(0,pos+diff));
 }
-let feeIncluded=true, adsPctTouched=false;
+
 $('tgFee').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   feeIncluded=b.dataset.v==='yes';
   [...$('tgFee').children].forEach(x=>x.classList.toggle('on',x===b));
-  calc();
+  snapshot(); calc();
 });
+
+const PRESETS=[1.25,1.5,2,2.5,3];
+const pc=$('presets');
+PRESETS.forEach(p=>{
+  const b=document.createElement('button');
+  b.textContent='×'+p;
+  b.onclick=()=>{ $('what').value=val('rev')*p; snapshot(); calc(); };
+  pc.appendChild(b);
+});
+
 function calc(){
+  if(loading) return;
   const rev=val('rev'), ads=val('ads'), gp=val('gp');
   const aov=val('aov'), pct=+$('pct').value/100;
   const fee=val('fee'), newFee=val('newFee');
-  $('pctOut').textContent=pct*100%1?(pct*100).toFixed(1)+'%':(pct*100)+'%';
+  $('pctOut').textContent=(pct*100%1?(pct*100).toFixed(1):(pct*100))+'%';
+
+  $('what').min=rev; $('what').max=rev*4||100;
+  if(+$('what').value<rev) $('what').value=rev;
+
   const adsPctBase=rev? ads/rev : 0;
   if(!adsPctTouched) $('adsPctIn').value=(adsPctBase*100).toFixed(1);
   const adsPctProj=+$('adsPctIn').value/100;
   const adsPctTxt=(adsPctProj*100).toFixed(1)+'%';
   $('adsPctOut').textContent=adsPctTxt;
+
   const orders=aov? rev/aov : 0;
   const varProfit=feeIncluded? gp+fee : gp;
   const netToday=feeIncluded? gp : gp-fee;
-  $('oMargin').textContent=rev?((netToday/rev)*100).toFixed(1)+'%':'–';
-  $('oRoas').textContent=ads?(rev/ads).toFixed(2):'–';
-  $('oAdsPct').textContent=rev?(adsPctBase*100).toFixed(1)+'%':'–';
-  $('oOrders').textContent=orders?Math.round(orders).toLocaleString('es-MX'):'–';
-  $('oNetToday').textContent=fmtS(netToday);
-  $('oChargeNow').textContent=fmt(fee);
-  $('oPerOrderNow').textContent=orders?fmt(fee/orders):'–';
-  $('oPctTicketNow').textContent=(orders&&aov)?(((fee/orders)/aov)*100).toFixed(1)+'%':'–';
-  const charge=rev*pct+newFee;
   const preAdsMargin=rev? (varProfit+ads)/rev : 0;
+
+  $('hRev').textContent=fmt(rev);
+  $('hAds').textContent='– '+fmt(ads);
+  $('hAdsPct').textContent='('+(adsPctBase*100).toFixed(1)+'% de la venta)';
+  $('hMix').textContent=(ads?(rev/ads).toFixed(2):'–')+' · '+Math.round(orders).toLocaleString('en-US')+' · '+fmt(aov);
+  $('hFee').textContent=fmt(fee);
+  $('hFeeOrder').textContent=orders?'('+fmt(fee/orders)+' por pedido · '+(aov?(((fee/orders)/aov)*100).toFixed(1):0)+'% del ticket)':'';
+  $('hNet').textContent=fmtS(netToday);
+  $('hMargin').textContent='(margen '+(rev?((netToday/rev)*100).toFixed(1):0)+'%)';
+
   function scen(r){
     const c=r*pct+newFee;
     const o=aov? r/aov : 0;
     const net=preAdsMargin*r - r*adsPctProj - c;
-    return {r,a:r*adsPctProj,c,o,po:o?c/o:0,net,delta:net-netToday};
+    return {r,a:r*adsPctProj,c,o,net,delta:net-netToday};
   }
-  const what=Math.max(val('what'),rev);
+  const what=+$('what').value;
+  $('whatLabel').textContent=fmt(what);
   const w=scen(what);
-  $('wAdsPctL').textContent=adsPctTxt;
-  $('wAds').textContent=fmt(w.a);
-  $('wAdsD').textContent='hoy inviertes '+fmt(ads)+' ('+(adsPctBase*100).toFixed(1)+'%)';
-  $('wOrders').textContent=Math.round(w.o).toLocaleString('es-MX');
-  $('wOrdersD').textContent='hoy son '+Math.round(orders).toLocaleString('es-MX');
+
   $('wPay').textContent=fmt(w.c);
-  $('wPayD').textContent='iguala + '+(pct*100)+'% de venta';
-  const stayPct=rev?(netToday/rev)*100:0;
-  const newPct=what?(w.net/what)*100:0;
-  $('cStay').textContent=fmtS(netToday);
-  $('cStayD').textContent='vendiendo '+fmt(rev)+' · margen '+stayPct.toFixed(1)+'%';
+  $('wPayD').textContent='iguala '+fmt(newFee)+' + '+(pct*100)+'% de venta · '+(w.o?fmt(w.c/w.o):'$0')+' por pedido';
   $('wNet').textContent=fmtS(w.net);
-  $('wNetD').textContent='vendiendo '+fmt(what)+' · margen '+newPct.toFixed(1)+'%';
-  $('wDelta').textContent=(w.delta>=0?'+':'−')+fmt(w.delta);
-  $('wDeltaD').textContent=netToday?((w.delta/netToday)*100).toFixed(0)+'% más que hoy':'';
-  $('contrast').textContent='Contraste: quedarte como hoy te deja '+fmtS(netToday)+' al mes; con la propuesta, aun pagándonos '+fmt(w.c)+', te quedan '+fmtS(w.net)+' — la diferencia es '+(w.delta>=0?'+':'−')+fmt(w.delta)+' cada mes.';
-  $('projNote').textContent='Las proyecciones usan '+adsPctTxt+' de la venta como inversión en ads (ajustable con el slider) y mantienen tu mismo margen sobre producto. "Ganas extra" compara contra tu utilidad de hoy ('+fmtS(netToday)+'). La fila resaltada es tu escenario "¿qué pasaría si…?".';
+  $('wNetD').textContent='margen '+(what?((w.net/what)*100).toFixed(1):0)+'% · hoy: '+fmtS(netToday);
+  $('wRev').textContent=fmt(w.r);
+  $('wAds').textContent='– '+fmt(w.a);
+  $('wAdsPctL').textContent='('+adsPctTxt+' · hoy '+fmt(ads)+')';
+  $('wOrders').textContent=Math.round(w.o).toLocaleString('en-US');
+  $('wOrdersD').textContent='(hoy '+Math.round(orders).toLocaleString('en-US')+')';
+  $('wDelta').textContent=(w.delta>=0?'+ ':'− ')+fmt(w.delta);
+
+  const cost=Math.max(w.r-w.a-w.c-Math.max(w.net,0),0);
+  const total=w.r||1;
+  $('segCost').style.width=(cost/total*100)+'%';
+  $('segAds').style.width=(w.a/total*100)+'%';
+  $('segAgency').style.width=(w.c/total*100)+'%';
+  $('segClient').style.width=(Math.max(w.net,0)/total*100)+'%';
+
+  const pctMore=netToday?((w.delta/netToday)*100).toFixed(0):'–';
+  $('contrast').innerHTML='Si te quedas como hoy: <b>'+fmtS(netToday)+'</b> al mes. Con la propuesta, aun pagándonos <b style="color:var(--agency)">'+fmt(w.c)+'</b>, te quedan <b style="color:var(--client)">'+fmtS(w.net)+'</b> — es decir <b style="color:var(--client)">'+(w.delta>=0?'+':'−')+fmt(w.delta)+' ('+pctMore+'% más)</b> cada mes.';
+
+  $('projNote').textContent='Las proyecciones usan '+adsPctTxt+' de la venta como inversión en ads y mantienen tu mismo margen sobre producto. "Ganas extra" compara contra tu utilidad de hoy ('+fmtS(netToday)+'). La fila azul es tu meta.';
+
   const body=$('projBody'); body.innerHTML='';
-  const mults=[1,1.25,1.5,2,2.5,3];
-  const rows=mults.map(mm=>scen(rev*mm));
-  if(!rows.some(x=>Math.abs(x.r-what)<1)) {rows.push(w); rows.sort((a,b)=>a.r-b.r);}
+  const rows=[1,1.25,1.5,2,2.5,3].map(mm=>scen(rev*mm));
+  if(!rows.some(x=>Math.abs(x.r-what)<1)){rows.push(w); rows.sort((a,b)=>a.r-b.r);}
   rows.forEach(s=>{
     const tr=document.createElement('tr');
     const isBase=Math.abs(s.r-rev)<1;
-    if(Math.abs(s.r-what)<1 && !isBase) tr.className='hl';
-    if(isBase) tr.style.color='var(--muted)';
-    const tag=isBase?' (hoy)':'';
-    tr.innerHTML='<td>'+fmt(s.r)+tag+'</td><td>'+fmt(s.a)+'</td><td>'+fmt(s.c)+'</td><td>'+fmtS(s.net)+'</td><td>'+((s.delta>=0?'+':'−')+fmt(s.delta))+'</td>';
+    if(Math.abs(s.r-what)<1&&!isBase) tr.className='hlrow';
+    if(isBase) tr.className='baserow';
+    tr.innerHTML='<td>'+fmt(s.r)+(isBase?' (hoy)':'')+'</td><td>'+fmt(s.a)+'</td><td>'+fmt(s.c)+'</td><td>'+fmtS(s.net)+'</td><td>'+((s.delta>=0?'+':'−')+fmt(s.delta))+'</td>';
     body.appendChild(tr);
   });
 }
-NUM_IDS.forEach(id=>$(id).addEventListener('input',e=>{addCommas(e.target);calc();}));
-$('pct').addEventListener('input',calc);
-$('adsPctIn').addEventListener('input',()=>{adsPctTouched=true;calc();});
-calc();
+
+NUM_IDS.forEach(id=>$(id).addEventListener('input',e=>{addCommas(e.target);snapshot();calc();}));
+$('pct').addEventListener('input',()=>{snapshot();calc();});
+$('what').addEventListener('input',()=>{snapshot();calc();});
+$('adsPctIn').addEventListener('input',()=>{adsPctTouched=true;snapshot();calc();});
+window.addEventListener('hashchange',()=>{
+  const k=location.hash.replace('#','');
+  if(clients[k]&&k!==current){current=k;save();load();}
+});
+load();
 </script>
 </body>
 </html>

@@ -1,20 +1,27 @@
-# Calculadora de proyección de ventas
+# Proyección de crecimiento (calculadora por cliente)
 
-Herramienta interactiva para presentar propuestas a clientes de la agencia: a partir de los datos actuales de una marca (facturación, gasto en ads, utilidad bruta y ticket promedio) calcula el escenario actual, el nuevo cobro propuesto (iguala + % sobre venta) y proyecciones de escalamiento.
+Herramienta interactiva para presentar propuestas a clientes de la agencia: a partir de los datos actuales de una marca (facturación, gasto en ads, utilidad bruta y ticket promedio) muestra el escenario de hoy, el nuevo cobro propuesto (iguala + % sobre venta) y proyecciones de escalamiento en lenguaje simple para el cliente.
 
 ## Cómo usarla
 
 Abre `index.html` en cualquier navegador. No necesita servidor ni dependencias.
 
-1. **Datos actuales del cliente** — facturación, ads, utilidad bruta (con envíos incluidos) y ticket promedio del mes. Indica si la utilidad ya trae descontado el fee fijo actual.
-2. **Escenario actual** — margen real, ROAS, % de gasto en ads, pedidos/mes, utilidad del cliente y lo que paga hoy (total, por pedido y % del ticket).
-3. **Nuevo cobro propuesto** — nueva iguala mensual + % sobre venta (cobro nuevo, siempre se descuenta aparte).
-4. **¿Qué pasaría si vendemos…?** — escribe una meta de facturación y ajusta el % de inversión en ads; muestra inversión, pedidos, pago a la agencia y el contraste "quedarte como hoy" vs "con la propuesta" con la ganancia extra mensual.
-5. **Otras proyecciones** — tabla a 1.25×, 1.5×, 2×, 2.5× y 3× de la facturación base (siempre parte de la base hacia arriba), con la fila del escenario manual resaltada.
+- **Panel izquierdo** — datos actuales del cliente (la utilidad bruta va con envíos incluidos; indica si ya trae descontado el fee fijo) y el nuevo cobro propuesto (nueva iguala + % sobre venta).
+- **Hoy** — desglose actual: facturación, ads (% de la venta), ROAS/pedidos/ticket, lo que paga hoy (por pedido y % del ticket) y su utilidad con margen real.
+- **¿Qué pasaría si vendemos…?** — slider de meta de venta con presets (×1.25 a ×3) y slider de % de gasto en ads (arranca en el % actual). Muestra las dos métricas grandes (lo que nos pagaría / su utilidad), el desglose, la barra de distribución de cada peso vendido y el contraste "quedarte como hoy vs tomar la propuesta".
+- **Otras proyecciones** — tabla a ×1.25, ×1.5, ×2, ×2.5 y ×3 de la facturación base; la fila azul es la meta seleccionada.
+
+## Varios clientes (discreto)
+
+Cada cliente tiene su propia pestaña con datos financieros personalizados, pensada para que no se vea a simple vista durante una presentación:
+
+- El selector es el **punto tenue en la esquina superior derecha** — casi invisible hasta pasar el mouse. Al hacer clic se abre el menú de clientes, "+ Nuevo cliente" y eliminar.
+- También puedes abrir directo a un cliente con el hash de la URL: `index.html#koneli`.
+- Un cliente nuevo se crea copiando los valores del actual; todos los cambios se guardan automáticamente por cliente en el navegador (localStorage).
 
 ## Supuestos del modelo
 
 - Al escalar se mantiene el margen sobre producto (antes de ads) calculado de los datos base.
 - El gasto en ads escala con el % del slider (por defecto, el % actual del cliente).
-- La iguala es fija: no crece con la venta.
+- La iguala es fija: no crece con la venta. El % sobre venta es cobro nuevo y se descuenta aparte en todos los escenarios.
 - "Ganas extra" compara contra la utilidad de hoy con el esquema actual.
