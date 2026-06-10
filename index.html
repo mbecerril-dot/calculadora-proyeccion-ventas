@@ -282,15 +282,6 @@
           <div class="tile solidgreen big"><div class="k">Ganarías extra cada mes (margen bruto)</div><div class="v" id="wDelta"></div><div class="s" id="wDeltaT" style="color:#a3d977"></div></div>
         </div>
 
-        <h2 style="margin:20px 0 8px">¿De dónde sale el cobro?</h2>
-        <table>
-          <tr><td class="row-label">Venta meta del mes</td><td id="bMeta"></td></tr>
-          <tr><td class="row-label">(×) <span id="bPctL"></span> sobre la venta total</td><td id="bVar"></td></tr>
-          <tr><td class="row-label">(+) Fee base mensual</td><td id="bFee"></td></tr>
-          <tr><td class="row-label" style="color:var(--text);font-weight:600">(=) Total que nos pagarías</td><td id="bTot" style="color:var(--agency)"></td></tr>
-        </table>
-        <div class="hint" style="margin-top:8px" id="bNote"></div>
-
         <div class="bar">
           <div class="seg-cost" id="segCost"></div>
           <div class="seg-ads" id="segAds"></div>
@@ -542,13 +533,6 @@ function calc(){
   $('wOrdersD').textContent='hoy son '+Math.round(orders).toLocaleString('en-US');
   $('wDelta').textContent=(w.delta>=0?'+':'−')+fmt(w.delta);
   $('wDeltaT').textContent='utilidad total en la meta: '+fmtS(w.net);
-  const pctTxt=(pct*100%1?(pct*100).toFixed(1):(pct*100))+'%';
-  $('bMeta').textContent=fmt(what);
-  $('bPctL').textContent=pctTxt;
-  $('bVar').textContent=fmt(what*pct);
-  $('bFee').textContent='+ '+fmt(newFee);
-  $('bTot').textContent=fmt(w.c);
-  $('bNote').textContent='El '+pctTxt+' se multiplica por toda la venta del mes ('+fmt(what)+'), sin importar de dónde venga; el fee base de '+fmt(newFee)+' es fijo.';
 
   const cost=Math.max(w.r-w.a-w.c-Math.max(w.net,0),0);
   const total=w.r||1;
