@@ -239,11 +239,12 @@
           <div class="tile"><div class="k" id="hNetLbl2">Margen real hoy</div><div class="v" id="hMargin"></div></div>
           <div class="tile"><div class="k">ROAS</div><div class="v" id="hRoas"></div></div>
           <div class="tile"><div class="k">% gasto en ads</div><div class="v" id="hAdsPct"></div><div class="s" id="hAdsMonto"></div></div>
-          <div class="tile"><div class="k">Pedidos / mes</div><div class="v" id="hOrders"></div><div class="s" id="hTicket"></div></div>
+          <div class="tile"><div class="k">Pedidos / mes</div><div class="v" id="hOrders"></div></div>
+          <div class="tile"><div class="k">Ticket promedio</div><div class="v" id="hTicket"></div></div>
           <div class="tile"><div class="k" id="hNetLbl">Tu utilidad hoy</div><div class="v" id="hNet"></div><div class="s" id="hRevS"></div></div>
         </div>
         <div class="tiles">
-          <div class="tile"><div class="k">Nos pagas hoy (fee)</div><div class="v" id="hFee"></div></div>
+          <div class="tile"><div class="k">Fee de la agencia</div><div class="v" id="hFee"></div></div>
           <div class="tile"><div class="k">Cobro actual por pedido</div><div class="v" id="hFeeOrder"></div></div>
           <div class="tile"><div class="k">% del ticket promedio</div><div class="v" id="hFeePct"></div></div>
         </div>
@@ -506,7 +507,7 @@ function calc(){
   $('hAdsPct').textContent=(adsPctBase*100).toFixed(1)+'%';
   $('hAdsMonto').textContent=fmt(ads)+' al mes';
   $('hOrders').textContent=Math.round(orders).toLocaleString('en-US');
-  $('hTicket').textContent='ticket '+fmt(aov);
+  $('hTicket').textContent=fmt(aov);
   $('hNetLbl').textContent=overNet?'Tu utilidad neta hoy':'Tu utilidad hoy';
   $('hNet').textContent=fmtS(netToday);
   $('hRevS').textContent='vendiendo '+fmt(rev);
