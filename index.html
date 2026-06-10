@@ -243,6 +243,7 @@
           <div class="tile"><div class="k">Ticket promedio</div><div class="v" id="hTicket"></div></div>
           <div class="tile"><div class="k" id="hNetLbl">Tu utilidad hoy</div><div class="v" id="hNet"></div><div class="s" id="hRevS"></div></div>
         </div>
+        <h2 style="margin:18px 0 10px">Lo que pagas hoy a tu agencia</h2>
         <div class="tiles">
           <div class="tile"><div class="k">Fee de la agencia</div><div class="v" id="hFee"></div></div>
           <div class="tile"><div class="k">Cobro actual por pedido</div><div class="v" id="hFeeOrder"></div></div>
@@ -254,7 +255,7 @@
         <h2>¿Qué pasaría si vendemos…?</h2>
 
         <div class="ctrl">
-          <div class="ctrl-label"><span class="name">Meta de venta mensual</span><span class="val" id="whatLabel">$2,000,000</span></div>
+          <div class="ctrl-label"><span class="name">Meta de venta mensual</span><span class="val" style="display:flex;align-items:baseline;gap:2px">$<input type="text" inputmode="numeric" id="whatBox" value="2,000,000" style="background:transparent;border:none;outline:none;color:var(--accent);font-weight:700;font-size:15px;font-family:inherit;text-align:left;width:110px;border-bottom:1px dashed var(--border)"></span></div>
           <input type="range" id="what" min="1539047" max="6156188" step="any" value="2000000">
           <div class="presets" id="presets"></div>
         </div>
@@ -522,7 +523,7 @@ function calc(){
     return {r,a:r*adsPctProj,c,o,net,delta:net-netToday};
   }
   const what=+$('what').value;
-  $('whatLabel').textContent=fmt(what);
+  if(document.activeElement!==$('whatBox')) $('whatBox').value=Math.round(what).toLocaleString('en-US');
   const w=scen(what);
 
   $('wPay').textContent=fmt(w.c);
@@ -565,6 +566,12 @@ NUM_IDS.forEach(id=>$(id).addEventListener('input',e=>{addCommas(e.target);snaps
 $('uGw').addEventListener('input',()=>{snapshot();calc();});
 $('pct').addEventListener('input',()=>{snapshot();calc();});
 $('what').addEventListener('input',()=>{snapshot();calc();});
+$('whatBox').addEventListener('input',e=>{
+  addCommas(e.target);
+  const n=val('whatBox');
+  if(n>0){ $('what').value=Math.max(n,+$('what').min); snapshot(); calc(); }
+});
+$('whatBox').addEventListener('blur',()=>{ snapshot(); calc(); });
 $('adsPctIn').addEventListener('input',()=>{adsPctTouched=true;snapshot();calc();});
 window.addEventListener('hashchange',()=>{
   const k=location.hash.replace('#','');
