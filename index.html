@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de proyección de ventas</title>
+<style>
+:root{
+  --bg:#faf9f5; --surface:#f0eee6; --text:#1a1a17; --muted:#6b6a64; --hint:#9b9a92;
+  --border:rgba(0,0,0,0.15); --border2:rgba(0,0,0,0.3);
+  --info-bg:#e6f1fb; --info-text:#0c447c;
+  --success-bg:#eaf3de; --success-text:#27500a;
+  --radius:8px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1f1e1b; --surface:#2b2a26; --text:#f0efe9; --muted:#a8a79f; --hint:#7c7b73;
+    --border:rgba(255,255,255,0.15); --border2:rgba(255,255,255,0.3);
+    --info-bg:#0c447c; --info-text:#b5d4f4;
+    --success-bg:#27500a; --success-text:#c0dd97;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.6}
+.wrap{max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem}
+h1{font-size:22px;font-weight:500;margin:0 0 1.5rem}
+.sec{margin:0 0 1.5rem}
+.lbl{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.st{font-size:14px;font-weight:500;color:var(--text)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.card{background:var(--surface);border-radius:var(--radius);padding:1rem}
+.card .v{font-size:22px;font-weight:500}
+.card .l{font-size:13px;color:var(--muted);margin-bottom:4px}
+input[type=text]{height:36px;padding:0 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:15px}
+input[type=text]:focus{outline:none;border-color:var(--info-text);box-shadow:0 0 0 2px var(--info-bg)}
+input[type=range]{accent-color:var(--info-text)}
+button{padding:8px 14px;font-size:13px;cursor:pointer;background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text)}
+.tg{display:flex;gap:0;border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;width:fit-content}
+.tg button{border:none;border-radius:0}
+.tg button.on{background:var(--info-bg);color:var(--info-text);font-weight:500}
+table.pr{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+table.pr th{font-weight:500;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:0.5px solid var(--border2)}
+table.pr td{text-align:right;padding:6px 8px;border-bottom:0.5px solid var(--border)}
+table.pr th:first-child,table.pr td:first-child{text-align:left}
+.hl{background:var(--info-bg)}
+.hl td{color:var(--info-text);font-weight:500}
+.note{font-size:12px;color:var(--hint);margin:6px 0 0}
+.green{background:var(--success-bg)}
+.green .l,.green .v{color:var(--success-text)}
+.divider{border-top:0.5px solid var(--border2);padding-top:1.5rem}
+.big{font-size:16px;font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Calculadora de proyección de ventas</h1>
+
+<div class="sec">
+  <span class="lbl st">Datos actuales del cliente (mensual)</span>
+  <div class="row" style="margin-top:8px">
+    <div><label class="lbl">Facturación (MXN)</label><input type="text" inputmode="numeric" id="rev" value="1,539,047" style="width:100%"></div>
+    <div><label class="lbl">Gasto en ads (MXN)</label><input type="text" inputmode="numeric" id="ads" value="473,284" style="width:100%"></div>
+    <div><label class="lbl">Utilidad bruta (MXN)</label><input type="text" inputmode="numeric" id="gp" value="507,772" style="width:100%"></div>
+    <div><label class="lbl">Ticket promedio (MXN)</label><input type="text" inputmode="numeric" id="aov" value="1,860" style="width:100%"></div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:end;margin-top:12px">
+    <div>
+      <label class="lbl">¿Esa utilidad ya tiene descontado el fee fijo actual?</label>
+      <div class="tg" id="tgFee">
+        <button data-v="yes" class="on">Sí, ya lo incluye</button>
+        <button data-v="no">No, falta descontarlo</button>
+      </div>
+    </div>
+    <div>
+      <label class="lbl">Fee fijo actual</label>
+      <input type="text" inputmode="numeric" id="fee" value="40,000" style="width:130px">
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <span class="lbl st">Escenario actual</span>
+  <div class="row" style="margin-top:8px">
+    <div class="card"><div class="l">Margen real hoy</div><div class="v" id="oMargin">–</div></div>
+    <div class="card"><div class="l">ROAS</div><div class="v" id="oRoas">–</div></div>
+    <div class="card"><div class="l">% gasto en ads</div><div class="v" id="oAdsPct">–</div></div>
+    <div class="card"><div class="l">Pedidos / mes</div><div class="v" id="oOrders">–</div></div>
+    <div class="card"><div class="l">Utilidad cliente hoy</div><div class="v" id="oNetToday">–</div></div>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <div class="card"><div class="l">Cobro actual / mes (fee)</div><div class="v" id="oChargeNow">–</div></div>
+    <div class="card"><div class="l">Cobro actual por pedido</div><div class="v" id="oPerOrderNow">–</div></div>
+    <div class="card"><div class="l">% del ticket promedio</div><div class="v" id="oPctTicketNow">–</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <span class="lbl st">Nuevo cobro propuesto</span>
+  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin-top:8px">
+    <div>
+      <label class="lbl">Nueva iguala mensual</label>
+      <input type="text" inputmode="numeric" id="newFee" value="40,000" style="width:130px">
+    </div>
+    <div style="flex:1;min-width:240px">
+      <label class="lbl">% sobre venta que se cobraría</label>
+      <div style="display:flex;align-items:center;gap:12px">
+        <input type="range" id="pct" min="0" max="20" step="0.5" value="3" style="flex:1">
+        <span id="pctOut" style="font-size:14px;font-weight:500;min-width:42px">3%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec divider">
+  <span class="lbl big" style="color:var(--text)">¿Qué pasaría si vendemos…?</span>
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px;margin:10px 0 14px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <input type="text" inputmode="numeric" id="what" value="2,000,000" style="width:180px;font-size:16px">
+      <span class="lbl" style="margin:0">MXN al mes</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:260px">
+      <label class="lbl" style="margin:0;white-space:nowrap">% de gasto en ads</label>
+      <input type="range" id="adsPctIn" min="5" max="60" step="0.5" value="30.5" style="flex:1">
+      <span id="adsPctOut" style="font-size:14px;font-weight:500;min-width:48px">–</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card"><div class="l">Invertirías en ads (<span id="wAdsPctL">–</span> de la venta)</div><div class="v" id="wAds">–</div><div class="l" id="wAdsD" style="margin:4px 0 0"></div></div>
+    <div class="card"><div class="l">Pedidos al mes</div><div class="v" id="wOrders">–</div><div class="l" id="wOrdersD" style="margin:4px 0 0"></div></div>
+    <div class="card"><div class="l">Nos pagarías al mes</div><div class="v" id="wPay">–</div><div class="l" id="wPayD" style="margin:4px 0 0"></div></div>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <div class="card"><div class="l">Si te quedas como hoy</div><div class="v" id="cStay">–</div><div class="l" id="cStayD" style="margin:4px 0 0"></div></div>
+    <div class="card green"><div class="l">Tu utilidad con la propuesta</div><div class="v" id="wNet">–</div><div class="l" id="wNetD" style="margin:4px 0 0"></div></div>
+    <div class="card green"><div class="l">Ganarías extra cada mes</div><div class="v" id="wDelta">–</div><div class="l" id="wDeltaD" style="margin:4px 0 0"></div></div>
+  </div>
+  <p style="font-size:13px;color:var(--muted);margin:10px 0 0" id="contrast"></p>
+</div>
+
+<div class="sec">
+  <span class="lbl st">Otras proyecciones de venta</span>
+  <table class="pr" style="margin-top:8px">
+    <thead><tr><th>Si vendes</th><th>Inviertes en ads</th><th>Nos pagas</th><th>Tu utilidad</th><th>Ganas extra</th></tr></thead>
+    <tbody id="projBody"></tbody>
+  </table>
+  <p class="note" id="projNote"></p>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString('es-MX');
+const fmtS=n=>(n<0?'−':'')+fmt(n);
+const val=id=>+($(id).value.replace(/[^0-9.]/g,''))||0;
+const NUM_IDS=['rev','ads','gp','aov','fee','newFee','what'];
+function addCommas(el){
+  const raw=el.value.replace(/[^0-9]/g,'');
+  const pos=el.selectionStart, before=el.value.length;
+  el.value=raw? (+raw).toLocaleString('en-US') : '';
+  const diff=el.value.length-before;
+  el.setSelectionRange(Math.max(0,pos+diff),Math.max(0,pos+diff));
+}
+let feeIncluded=true, adsPctTouched=false;
+$('tgFee').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  feeIncluded=b.dataset.v==='yes';
+  [...$('tgFee').children].forEach(x=>x.classList.toggle('on',x===b));
+  calc();
+});
+function calc(){
+  const rev=val('rev'), ads=val('ads'), gp=val('gp');
+  const aov=val('aov'), pct=+$('pct').value/100;
+  const fee=val('fee'), newFee=val('newFee');
+  $('pctOut').textContent=pct*100%1?(pct*100).toFixed(1)+'%':(pct*100)+'%';
+  const adsPctBase=rev? ads/rev : 0;
+  if(!adsPctTouched) $('adsPctIn').value=(adsPctBase*100).toFixed(1);
+  const adsPctProj=+$('adsPctIn').value/100;
+  const adsPctTxt=(adsPctProj*100).toFixed(1)+'%';
+  $('adsPctOut').textContent=adsPctTxt;
+  const orders=aov? rev/aov : 0;
+  const varProfit=feeIncluded? gp+fee : gp;
+  const netToday=feeIncluded? gp : gp-fee;
+  $('oMargin').textContent=rev?((netToday/rev)*100).toFixed(1)+'%':'–';
+  $('oRoas').textContent=ads?(rev/ads).toFixed(2):'–';
+  $('oAdsPct').textContent=rev?(adsPctBase*100).toFixed(1)+'%':'–';
+  $('oOrders').textContent=orders?Math.round(orders).toLocaleString('es-MX'):'–';
+  $('oNetToday').textContent=fmtS(netToday);
+  $('oChargeNow').textContent=fmt(fee);
+  $('oPerOrderNow').textContent=orders?fmt(fee/orders):'–';
+  $('oPctTicketNow').textContent=(orders&&aov)?(((fee/orders)/aov)*100).toFixed(1)+'%':'–';
+  const charge=rev*pct+newFee;
+  const preAdsMargin=rev? (varProfit+ads)/rev : 0;
+  function scen(r){
+    const c=r*pct+newFee;
+    const o=aov? r/aov : 0;
+    const net=preAdsMargin*r - r*adsPctProj - c;
+    return {r,a:r*adsPctProj,c,o,po:o?c/o:0,net,delta:net-netToday};
+  }
+  const what=Math.max(val('what'),rev);
+  const w=scen(what);
+  $('wAdsPctL').textContent=adsPctTxt;
+  $('wAds').textContent=fmt(w.a);
+  $('wAdsD').textContent='hoy inviertes '+fmt(ads)+' ('+(adsPctBase*100).toFixed(1)+'%)';
+  $('wOrders').textContent=Math.round(w.o).toLocaleString('es-MX');
+  $('wOrdersD').textContent='hoy son '+Math.round(orders).toLocaleString('es-MX');
+  $('wPay').textContent=fmt(w.c);
+  $('wPayD').textContent='iguala + '+(pct*100)+'% de venta';
+  const stayPct=rev?(netToday/rev)*100:0;
+  const newPct=what?(w.net/what)*100:0;
+  $('cStay').textContent=fmtS(netToday);
+  $('cStayD').textContent='vendiendo '+fmt(rev)+' · margen '+stayPct.toFixed(1)+'%';
+  $('wNet').textContent=fmtS(w.net);
+  $('wNetD').textContent='vendiendo '+fmt(what)+' · margen '+newPct.toFixed(1)+'%';
+  $('wDelta').textContent=(w.delta>=0?'+':'−')+fmt(w.delta);
+  $('wDeltaD').textContent=netToday?((w.delta/netToday)*100).toFixed(0)+'% más que hoy':'';
+  $('contrast').textContent='Contraste: quedarte como hoy te deja '+fmtS(netToday)+' al mes; con la propuesta, aun pagándonos '+fmt(w.c)+', te quedan '+fmtS(w.net)+' — la diferencia es '+(w.delta>=0?'+':'−')+fmt(w.delta)+' cada mes.';
+  $('projNote').textContent='Las proyecciones usan '+adsPctTxt+' de la venta como inversión en ads (ajustable con el slider) y mantienen tu mismo margen sobre producto. "Ganas extra" compara contra tu utilidad de hoy ('+fmtS(netToday)+'). La fila resaltada es tu escenario "¿qué pasaría si…?".';
+  const body=$('projBody'); body.innerHTML='';
+  const mults=[1,1.25,1.5,2,2.5,3];
+  const rows=mults.map(mm=>scen(rev*mm));
+  if(!rows.some(x=>Math.abs(x.r-what)<1)) {rows.push(w); rows.sort((a,b)=>a.r-b.r);}
+  rows.forEach(s=>{
+    const tr=document.createElement('tr');
+    const isBase=Math.abs(s.r-rev)<1;
+    if(Math.abs(s.r-what)<1 && !isBase) tr.className='hl';
+    if(isBase) tr.style.color='var(--muted)';
+    const tag=isBase?' (hoy)':'';
+    tr.innerHTML='<td>'+fmt(s.r)+tag+'</td><td>'+fmt(s.a)+'</td><td>'+fmt(s.c)+'</td><td>'+fmtS(s.net)+'</td><td>'+((s.delta>=0?'+':'−')+fmt(s.delta))+'</td>';
+    body.appendChild(tr);
+  });
+}
+NUM_IDS.forEach(id=>$(id).addEventListener('input',e=>{addCommas(e.target);calc();}));
+$('pct').addEventListener('input',calc);
+$('adsPctIn').addEventListener('input',()=>{adsPctTouched=true;calc();});
+calc();
+</script>
+</body>
+</html>
