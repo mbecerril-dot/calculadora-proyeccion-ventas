@@ -153,6 +153,7 @@
       <div class="modetabs" id="modeTabs">
         <button data-m="tw" class="on">Triple Whale</button>
         <button data-m="unit">Unitaria</button>
+        <button data-m="vm">Ventas + margen</button>
       </div>
 
       <div class="ctrl">
@@ -212,6 +213,19 @@
           </div>
         </div>
         <div class="derived" id="derived"></div>
+      </div>
+
+      <div id="modeVm" style="display:none">
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Facturación (Shopify)</span></div>
+          <div class="field"><span>$</span><input type="text" inputmode="numeric" id="vmRev" value="1,539,047"></div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-label"><span class="name">Margen bruto de producto</span><span class="val" id="vmMarginOut">66%</span></div>
+          <input type="range" id="vmMargin" min="10" max="90" step="1" value="66">
+          <div class="hint">De cada peso vendido, lo que queda después de producto, envío y comisiones — antes de ads.</div>
+        </div>
+        <div class="derived" id="derivedVm"></div>
       </div>
 
       <div class="ctrl">
@@ -342,11 +356,11 @@ const $=id=>document.getElementById(id);
 const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString('en-US');
 const fmtS=n=>(n<0?'−':'')+fmt(n);
 const val=id=>+($(id).value.replace(/[^0-9.]/g,''))||0;
-const NUM_IDS=['rev','ads','gp','aov','fee','newFee','uOrders','uCogs','uShip','fixed'];
+const NUM_IDS=['rev','ads','gp','aov','fee','newFee','uOrders','uCogs','uShip','fixed','vmRev'];
 
 const DEFAULT_CLIENTS={
   koneli:{name:'Koneli', mode:'tw', rev:1539047, ads:473284, gp:507772, aov:1860, fee:40000, feeIncluded:true,
-    uOrders:827, uCogs:459, uShip:100, uGw:3.6, uMode:'cost', uMargin:66, fixed:0, useNet:false,
+    uOrders:827, uCogs:459, uShip:100, uGw:3.6, uMode:'cost', uMargin:66, vmRev:1539047, vmMargin:66, fixed:0, useNet:false,
     newFee:40000, pct:8, adsPct:null, what:2000000}
 };
 let clients=JSON.parse(localStorage.getItem('proyClientsInc')||'null')||DEFAULT_CLIENTS;
@@ -365,6 +379,7 @@ function snapshot(){
   c.fee=val('fee'); c.newFee=val('newFee'); c.pct=+$('pct').value;
   c.uOrders=val('uOrders'); c.uCogs=val('uCogs'); c.uShip=val('uShip'); c.uGw=+$('uGw').value||0;
   c.uMode=uMode; c.uMargin=+$('uMargin').value||0;
+  c.vmRev=val('vmRev'); c.vmMargin=+$('vmMargin').value||0;
   c.fixed=val('fixed'); c.useNet=useNet;
   c.feeIncluded=feeIncluded;
   c.adsPct=adsPctTouched? +$('adsPctIn').value : null;
@@ -382,6 +397,8 @@ function load(){
   $('uGw').value=c.uGw!=null?c.uGw:3.6;
   uMode=c.uMode||'cost';
   $('uMargin').value=c.uMargin!=null?c.uMargin:66;
+  setNum('vmRev',c.vmRev!=null?c.vmRev:c.rev);
+  $('vmMargin').value=c.vmMargin!=null?c.vmMargin:66;
   $('pct').value=c.pct;
   feeIncluded=c.feeIncluded!==false;
   useNet=!!c.useNet;
@@ -400,6 +417,11 @@ function load(){
 
 function fin(){
   const aov=val('aov'), ads=val('ads');
+  if(mode==='vm'){
+    const rev=val('vmRev');
+    const gp=rev*((+$('vmMargin').value||0)/100)-ads;
+    return {rev,ads,gp,aov,orders:aov?rev/aov:0,unit:false,vm:true};
+  }
   if(mode==='unit'){
     const orders=val('uOrders'), cogs=val('uCogs'), ship=val('uShip'), gw=(+$('uGw').value||0)/100;
     const rev=orders*aov;
@@ -413,6 +435,7 @@ function fin(){
 function applyMode(){
   $('modeTw').style.display=mode==='tw'?'block':'none';
   $('modeUnit').style.display=mode==='unit'?'block':'none';
+  $('modeVm').style.display=mode==='vm'?'block':'none';
   $('feeTgWrap').style.display=mode==='tw'?'block':'none';
   [...$('tgUnit').children].forEach(x=>x.classList.toggle('on',x.dataset.v===uMode));
   $('unitCost').style.display=uMode==='cost'?'block':'none';
@@ -496,6 +519,7 @@ function calc(){
   const fee=val('fee'), newFee=val('newFee'), fixed=val('fixed');
   $('pctOut').textContent=(pct*100%1?(pct*100).toFixed(1):(pct*100))+'%';
   $('uMarginOut').textContent=(+$('uMargin').value)+'%';
+  $('vmMarginOut').textContent=(+$('vmMargin').value)+'%';
 
   $('netTgWrap').style.display=fixed>0?'block':'none';
   const overNet=useNet&&fixed>0;
@@ -517,6 +541,18 @@ function calc(){
     }
     $('derived').innerHTML=d;
   }
+  if(f.vm){
+    let d='Con estos datos: utilidad bruta <b>'+fmtS(gp)+'</b> (margen post-ads <b>'+(rev?((gp/rev)*100).toFixed(1):0)+'%</b>) · '+Math.round(orders).toLocaleString('en-US')+' pedidos estimados';
+    const twGp=val('gp');
+    if(twGp>0){
+      const twNet=(feeIncluded? twGp : twGp-fee);
+      const vNet=gp-fee;
+      const diff=vNet-twNet;
+      if(Math.abs(diff)<Math.max(twNet*0.02,5000)) d+='<br>✅ Cuadra con Triple Whale ('+fmtS(twNet)+' de utilidad hoy).';
+      else d+='<br>⚠️ Triple Whale reporta <b>'+fmtS(twNet)+'</b> — aquí sale '+fmtS(vNet)+': mueve el % de margen hasta cuadrar.';
+    }
+    $('derivedVm').innerHTML=d;
+  }
 
   $('what').min=rev; $('what').max=rev*4||100;
   if(+$('what').value<rev) $('what').value=rev;
@@ -527,7 +563,7 @@ function calc(){
   const adsPctTxt=(adsPctProj*100).toFixed(1)+'%';
   $('adsPctOut').textContent=adsPctTxt;
 
-  const incl=f.unit? false : feeIncluded;
+  const incl=(f.unit||f.vm)? false : feeIncluded;
   const varProfit=incl? gp+fee : gp;
   const netToday=(incl? gp : gp-fee)-(overNet?fixed:0);
   const preAdsMargin=rev? (varProfit+ads)/rev : 0;
@@ -610,6 +646,7 @@ $('tgUnit').addEventListener('click',e=>{
   applyMode(); snapshot(); calc();
 });
 $('uMargin').addEventListener('input',()=>{snapshot();calc();});
+$('vmMargin').addEventListener('input',()=>{snapshot();calc();});
 $('pct').addEventListener('input',()=>{snapshot();calc();});
 $('what').addEventListener('input',()=>{snapshot();calc();});
 $('whatBox').addEventListener('input',e=>{
